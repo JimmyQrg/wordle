@@ -1,69 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Infinite Wordle — Fancy</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinite Wordle — Super Fancy</title>
 <style>
-  :root{ --tile-size:70px; }
-  html,body{ height:100%; margin:0; }
-  body {
-    font-family: "Arial Black", Arial, sans-serif;
-    display:flex; flex-direction:column; align-items:center; min-height:100vh;
-    color:white; overflow-x:hidden;
-    background: linear-gradient(135deg, #004B4B 0%, #6A2C8C 33%, #00AFAF 66%, #6A2C8C 100%);
-    background-size: 300% 300%; animation: gradientShift 24s ease-in-out infinite; transition: background 1s;
-  }
-  @keyframes gradientShift { 0%{background-position:0% 50%;}33%{background-position:50% 50%;}66%{background-position:100% 50%;}100%{background-position:0% 50%;} }
-  h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow: 2px 2px 12px rgba(0,0,0,0.7);}
-  #board { display:grid; grid-template-rows: repeat(6, 1fr); gap:12px; perspective:1000px; margin-bottom:12px; }
-  .row { display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; }
-  .tile { width:var(--tile-size); height:var(--tile-size); background:#333; display:flex; justify-content:center; align-items:center; font-size:30px; font-weight:bold; border-radius:12px; perspective:1000px; box-shadow:0 0 5px rgba(0,0,0,0.6); transition: transform 0.2s; }
-  .tile.keypress { transform: scale(1.2); }
-  .tile.pop { transform: scale(1.08); }
-  .tile.shake { animation: shake 0.36s; }
-  @keyframes shake {0%{transform:translateX(0);}25%{transform:translateX(-6px);}50%{transform:translateX(6px);}75%{transform:translateX(-6px);}100%{transform:translateX(0);}}
-  .inner { width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#333; border-radius:12px; transform-style:preserve-3d; transition: transform 0.62s cubic-bezier(.2,.9,.3,1), background 0.2s, box-shadow 0.2s; }
-  .inner.correct { background: #2ea44f; }
-  .inner.present { background: #c9b458; }
-  .inner.absent  { background: #5f6368; }
-  .inner.glow-correct { box-shadow:0 0 22px rgba(46,164,79,0.9); }
-  .inner.glow-present { box-shadow:0 0 22px rgba(201,180,88,0.95); }
-  .inner.glow-absent { box-shadow:0 0 14px rgba(95,99,104,0.9); }
-  .flipping { transform: rotateX(180deg); }
-  .letter { backface-visibility:hidden; transform: rotateX(0deg); user-select:none; }
-  #controls { margin-top:8px; margin-bottom:10px; }
-  #controls button { margin:6px; padding:10px 20px; border-radius:10px; border:none; font-weight:bold; background: rgba(0,0,0,0.35); color:white; cursor:pointer; transition: transform .18s, box-shadow .18s, background .18s; text-shadow: 1px 1px 3px rgba(0,0,0,0.6);}
-  #controls button:hover { transform: translateY(-3px) scale(1.03); box-shadow:0 0 18px rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);}
-  #keyboard { margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:10; }
-  .kb-row { display:flex; gap:6px; justify-content:center; }
-  .kb-row button { padding:10px 12px; border-radius:6px; border:none; background:#444; color:white; font-weight:bold; cursor:pointer; transition: transform .12s, box-shadow .12s, background .12s; }
-  .kb-row button:hover { transform: scale(1.06); box-shadow:0 0 12px rgba(255,255,255,0.08); background:#666; }
-  .kb-row button.wide { min-width:90px; padding-left:18px; padding-right:18px; }
-  @keyframes shakeScreen {0%{transform:translate(0,0);}12%{transform:translate(-12px,8px);}24%{transform:translate(10px,-8px);}36%{transform:translate(-8px,8px);}48%{transform:translate(10px,-8px);}60%{transform:translate(-6px,6px);}72%{transform:translate(6px,-6px);}84%{transform:translate(-4px,4px);}100%{transform:translate(0,0);}}
-  .shakeBody { animation: shakeScreen 900ms ease-in-out both; }
-  .fallPiece { position:absolute; will-change: transform, opacity; pointer-events:none; animation: fallDown 1600ms cubic-bezier(.2,.7,.3,1) forwards; }
-  @keyframes fallDown {0%{opacity:1; transform:translateY(0) rotate(0deg) scale(1);}100%{opacity:0; transform:translateY(900px) rotate(720deg) scale(.8);}}
-  .particle { position:absolute; border-radius:50%; pointer-events:none; will-change: transform, opacity; animation: particleMove 900ms ease-out forwards; }
-  @keyframes particleMove {0%{transform:translateY(0) scale(1); opacity:1;}100%{transform:translateY(-200px) translateX(80px) scale(0.6); opacity:0;}}
-  #codePopup { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(0,0,0,0.86); padding:22px; border-radius:12px; display:none; flex-direction:column; gap:10px; align-items:center; z-index:3000; box-shadow:0 0 30px rgba(0,0,0,0.6);}
-  #codePopup input { width:360px; max-width:86vw; padding:10px 12px; font-size:16px; border-radius:8px; border:none; }
-  #codePopup .codeRow { display:flex; gap:8px; }
-  #overlayBlock { position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display:none; z-index:2900; }
-  .centerMessage { position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7); border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08); }
-  @media (max-width:600px){ :root{ --tile-size:56px; } .letter{ font-size:20px; } }
+:root{--tile-size:70px;}
+html,body{height:100%;margin:0;}
+body{
+  font-family:"Arial Black", Arial, sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+  min-height:100vh; color:white; overflow-x:hidden;
+  background: linear-gradient(135deg, #004B4B 0%, #6A2C8C 33%, #00AFAF 66%, #6A2C8C 100%);
+  background-size: 300% 300%; animation: gradientShift 24s ease-in-out infinite;
+}
+@keyframes gradientShift{
+  0%{background-position:0% 50%;}
+  33%{background-position:50% 50%;}
+  66%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px rgba(0,0,0,0.7);}
+#board { display:grid; grid-template-rows: repeat(6, 1fr); gap:12px; perspective:1000px; margin-bottom:12px; position: relative; z-index:1; }
+.row { display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; }
+.tile { width:var(--tile-size); height:var(--tile-size); background:#333; display:flex; justify-content:center; align-items:center; font-size:30px; font-weight:bold; border-radius:12px; perspective:1000px; box-shadow:0 0 5px rgba(0,0,0,0.6); transition: transform 0.2s; }
+.tile.keypress { transform: scale(1.2); }
+.tile.pop { transform: scale(1.08); }
+.inner { width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#333; border-radius:12px; transform-style:preserve-3d; transition: transform 0.62s cubic-bezier(.2,.9,.3,1), background 0.2s, box-shadow 0.2s; }
+.inner.correct { background: #2ea44f; }
+.inner.present { background: #c9b458; }
+.inner.absent  { background: #5f6368; }
+.inner.glow-correct { box-shadow:0 0 22px rgba(46,164,79,0.9); }
+.inner.glow-present { box-shadow:0 0 22px rgba(201,180,88,0.95); }
+.inner.glow-absent { box-shadow:0 0 14px rgba(95,99,104,0.9); }
+.flipping { transform: rotateX(180deg); }
+.letter { backface-visibility:hidden; transform: rotateX(0deg); user-select:none; }
+#controls { margin-top:8px; margin-bottom:10px; z-index:1; }
+#controls button { margin:6px; padding:10px 20px; border-radius:10px; border:none; font-weight:bold; background: rgba(0,0,0,0.35); color:white; cursor:pointer; transition: transform .18s, box-shadow .18s, background .18s; text-shadow: 1px 1px 3px rgba(0,0,0,0.6);}
+#controls button:hover { transform: translateY(-3px) scale(1.03); box-shadow:0 0 18px rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);}
+#keyboard { margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:1; position:relative; }
+.kb-row { display:flex; gap:6px; justify-content:center; }
+.kb-row button { padding:10px 12px; border-radius:6px; border:none; background:#444; color:white; font-weight:bold; cursor:pointer; transition: transform .12s, box-shadow .12s, background .12s; }
+.kb-row button:hover { transform: scale(1.06); box-shadow:0 0 12px rgba(255,255,255,0.08); background:#666; }
+.kb-row button.wide { min-width:90px; padding-left:18px; padding-right:18px; }
+@keyframes shakeScreen {0%{transform:translate(0,0) scale(1);}12%{transform:translate(-12px,8px) scale(1.02);}24%{transform:translate(10px,-8px) scale(0.98);}36%{transform:translate(-8px,8px) scale(1.01);}48%{transform:translate(10px,-8px) scale(1.03);}60%{transform:translate(-6px,6px) scale(0.97);}72%{transform:translate(6px,-6px) scale(1.02);}84%{transform:translate(-4px,4px) scale(1.01);}100%{transform:translate(0,0) scale(1);}}
+.shakeBody { animation: shakeScreen 1200ms ease-in-out both; }
+.fallPiece { position:absolute; will-change: transform, opacity; pointer-events:none; animation: fallDown 1600ms cubic-bezier(.2,.7,.3,1) forwards; z-index:9999; }
+@keyframes fallDown {0%{opacity:1; transform:translateY(0) rotate(0deg) scale(1);}100%{opacity:0; transform:translateY(900px) rotate(720deg) scale(.8);}}
+.particle { position:absolute; border-radius:50%; pointer-events:none; will-change: transform, opacity; z-index:9999;}
+#codePopup { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(0,0,0,0.86); padding:22px; border-radius:12px; display:none; flex-direction:column; gap:10px; align-items:center; z-index:3000; box-shadow:0 0 30px rgba(0,0,0,0.6);}
+#codePopup input { width:360px; max-width:86vw; padding:10px 12px; font-size:16px; border-radius:8px; border:none; }
+#codePopup .codeRow { display:flex; gap:8px; }
+#overlayBlock { position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display:none; z-index:2900; }
+.centerMessage { position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7); border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08); }
+@media (max-width:600px){ :root{ --tile-size:56px; } .letter{ font-size:20px; } }
 </style>
 </head>
 <body>
 <h1>Infinite Wordle</h1>
-<div id="board" aria-hidden="false"></div>
+<div id="board"></div>
 <div id="controls">
-  <button id="newWordBtn" title="Reload page for new word">New Word</button>
-  <button id="giveUpBtn" title="Reveal and restart">Give Up</button>
+  <button id="newWordBtn">New Word</button>
+  <button id="giveUpBtn">Give Up</button>
 </div>
-<div id="keyboard" aria-hidden="false"></div>
+<div id="keyboard"></div>
 <div id="overlayBlock" onclick="closeCodePopup()"></div>
-<div id="codePopup" role="dialog" aria-modal="true">
+<div id="codePopup">
   <div style="font-weight:bold">Enter Code</div>
   <input id="codeInput" type="text" placeholder="Type your code here" />
   <div class="codeRow">
@@ -72,24 +74,19 @@
   </div>
 </div>
 <script>
-const WORDS = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY","IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY","QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON","YEAST","ZEBRA"];
-let solution = WORDS[Math.floor(Math.random()*WORDS.length)];
+const WORDS=["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY","IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY","QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON","YEAST","ZEBRA"];
+let solution=WORDS[Math.floor(Math.random()*WORDS.length)];
 let board, keyboard;
-let currentRow = 0;
-let currentCol = 0;
-let inputLocked = false;
-const SECRET_CODE = "JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
-
-window.addEventListener("load", () => {
-  board = document.getElementById("board");
-  keyboard = document.getElementById("keyboard");
+let currentRow=0, currentCol=0, inputLocked=false;
+const SECRET_CODE="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
+window.addEventListener("load",()=>{
+  board=document.getElementById("board"); keyboard=document.getElementById("keyboard");
   buildBoard(); createKeyboard();
-  document.addEventListener("keydown", handleKey);
-  document.addEventListener("keydown", detectSecretCode);
-  document.getElementById("newWordBtn").addEventListener("click", ()=>location.reload());
-  document.getElementById("giveUpBtn").addEventListener("click", ()=>{ alert("The word was: "+solution); location.reload(); });
-  document.getElementById("codeSubmitBtn").addEventListener("click", checkCode);
-  spawnAmbientParticles(40);
+  document.addEventListener("keydown",handleKey);
+  document.addEventListener("keydown",detectSecretCode);
+  document.getElementById("newWordBtn").onclick=()=>location.reload();
+  document.getElementById("giveUpBtn").onclick=()=>{alert("Word was: "+solution); location.reload();}
+  document.getElementById("codeSubmitBtn").onclick=checkCode;
 });
 
 function buildBoard(){
@@ -107,70 +104,65 @@ function buildBoard(){
 }
 
 function createKeyboard(){
+  const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
   keyboard.innerHTML="";
-  ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"].forEach(letters=>{
-    const rdiv=document.createElement("div"); rdiv.className="kb-row";
-    for(const ch of letters){ const btn=document.createElement("button"); btn.textContent=ch; btn.addEventListener("click", ()=>handleKey({key:ch})); rdiv.appendChild(btn);}
-    keyboard.appendChild(rdiv);
+  rows.forEach(r=>{
+    const rowDiv=document.createElement("div"); rowDiv.className="kb-row";
+    for(let ch of r){
+      const btn=document.createElement("button"); btn.textContent=ch;
+      btn.onclick=()=>handleKey({key:ch}); rowDiv.appendChild(btn);
+    }
+    keyboard.appendChild(rowDiv);
   });
-  const control=document.createElement("div"); control.className="kb-row";
-  ["Enter","Backspace"].forEach(k=>{
-    const btn=document.createElement("button"); btn.textContent=k; btn.className="wide"; btn.addEventListener("click", ()=>handleKey({key:k})); control.appendChild(btn);
-  });
-  keyboard.appendChild(control);
+  const lastRow=document.createElement("div"); lastRow.className="kb-row";
+  const enterBtn=document.createElement("button"); enterBtn.textContent="Enter"; enterBtn.className="wide"; enterBtn.onclick=()=>handleKey({key:"Enter"});
+  const backBtn=document.createElement("button"); backBtn.textContent="Backspace"; backBtn.className="wide"; backBtn.onclick=()=>handleKey({key:"Backspace"});
+  lastRow.appendChild(enterBtn); lastRow.appendChild(backBtn);
+  keyboard.appendChild(lastRow);
 }
-
-function getTile(r,c){return board.children[r].children[c];}
 
 function handleKey(e){
   if(inputLocked) return;
-  const key=e.key.toUpperCase();
-  if(/^[A-Z]$/.test(key)&&currentCol<5){
-    const tile=getTile(currentRow,currentCol);
-    tile.querySelector(".letter").textContent=key;
+  if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
+    const tile=getTile(currentRow,currentCol); tile.querySelector(".letter").textContent=e.key.toUpperCase();
     tile.classList.add("keypress");
     setTimeout(()=>tile.classList.remove("keypress"),200);
     currentCol++;
-  } else if(e.key==="Backspace"&&currentCol>0){
-    currentCol--;
-    getTile(currentRow,currentCol).querySelector(".letter").textContent="";
-  } else if(e.key==="Enter"&&currentCol===5){
+  } else if(e.key==="Backspace" && currentCol>0){
+    currentCol--; getTile(currentRow,currentCol).querySelector(".letter").textContent="";
+  } else if(e.key==="Enter" && currentCol===5){
     submitRow();
   }
 }
 
-function submitRow(){
-  let guess=""; for(let c=0;c<5;c++){ guess+=getTile(currentRow,c).querySelector(".letter").textContent; }
-  if(guess.length<5) return;
-  inputLocked=true;
-  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
-  for(let i=0;i<5;i++){ if(guess[i]===solution[i]){ colors[i]="correct"; solutionLetters[i]=null; } }
-  for(let i=0;i<5;i++){ if(colors[i]!=="correct"){ let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;} } }
+function getTile(r,c){return board.children[r].children[c];}
 
+function submitRow(){
+  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
+  if(guess.length<5) return; inputLocked=true;
+  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
+  for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
+  for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
       const tile=getTile(currentRow,idx).querySelector(".inner");
       tile.classList.add("flipping");
       setTimeout(()=>{
-        tile.classList.add(colors[idx]);
-        tile.classList.add("glow-"+colors[idx]);
-        tile.classList.remove("flipping");
+        tile.classList.add(colors[idx]); tile.classList.remove("flipping");
+        tile.classList.add(`glow-${colors[idx]}`);
+        setTimeout(()=>tile.classList.remove(`glow-${colors[idx]}`),600);
         if(idx===4){
           inputLocked=false;
-          // Victory
           if(guess===solution){
-            // Show luck message
-            let luckMsg="";
-            if(currentRow<=1) luckMsg="You've got HELL a good luck!";
-            else if(currentRow===2) luckMsg="Your luck is crazy!";
-            else if(currentRow===3) luckMsg="You are GOOD!";
-            if(luckMsg) showMessage(luckMsg,1500);
-            setTimeout(()=>triggerVictorySequence(),1600);
-          } else {
+            let msg="";
+            if(currentRow<2) msg="You've got HELL a good luck!";
+            else if(currentRow===2) msg="Your luck is crazy!";
+            else if(currentRow===3) msg="You are GOOD!";
+            if(msg) showMessage(msg,1600);
+            setTimeout(triggerVictorySequence,1600);
+          } else{
             currentRow++; currentCol=0;
-            showMessage("Guess submitted!",800);
-            spawnConfettiForRow(currentRow-1);
-            if(currentRow===6) setTimeout(()=>{alert("Out of tries! Word was "+solution); location.reload();},300);
+            if(currentRow===6) showMessage("Out of tries! Word was "+solution,2000);
           }
         }
       },300);
@@ -178,91 +170,71 @@ function submitRow(){
   });
 }
 
-// Fancy messages
-function showMessage(msg,duration=1200){
-  const div=document.createElement("div"); div.className="centerMessage"; div.textContent=msg;
-  document.body.appendChild(div); setTimeout(()=>div.remove(),duration);
-}
-
-// Victory sequence
 function triggerVictorySequence(){
   document.body.classList.add("shakeBody");
+  pulseBoardGlow();
   shatterBoard();
-  spawnGreenExplosion(80);
-  setTimeout(()=>location.reload(),1800);
+  spawnConfettiRain(150,0,0,window.innerWidth);
+  spawnFloatingLetters(30,0,0,window.innerWidth,window.innerHeight);
+  spawnSparkParticles(80,window.innerWidth/2,window.innerHeight/2);
+  setTimeout(()=>location.reload(),2400);
 }
 
 function shatterBoard(){
-  const pieces=[]; board.querySelectorAll(".tile").forEach(t=>{
+  const pieces=[];
+  board.querySelectorAll(".tile").forEach(t=>{
     const rect=t.getBoundingClientRect();
-    const clone=t.cloneNode(true); clone.classList.add("fallPiece"); clone.style.left=rect.left+"px"; clone.style.top=rect.top+"px"; clone.style.width=rect.width+"px"; clone.style.height=rect.height+"px";
-    document.body.appendChild(clone); pieces.push(clone); t.style.visibility="hidden";
+    const clone=t.cloneNode(true); clone.className="fallPiece";
+    clone.style.left=rect.left+"px"; clone.style.top=rect.top+"px";
+    clone.style.width=rect.width+"px"; clone.style.height=rect.height+"px";
+    document.body.appendChild(clone); pieces.push(clone);
   });
   setTimeout(()=>pieces.forEach(p=>p.remove()),1800);
 }
 
-function spawnGreenExplosion(count){
+function spawnConfettiRain(count,x,y,width){
   for(let i=0;i<count;i++){
-    const p=document.createElement("div"); p.className="particle"; 
-    const size=Math.random()*14+6; p.style.width=size+"px"; p.style.height=size+"px"; 
-    p.style.background="rgba(46,255,87,"+(Math.random()*0.9+0.4)+")"; 
-    p.style.left=(window.innerWidth/2)+"px"; p.style.top=(window.innerHeight/2)+"px"; 
-    document.body.appendChild(p);
-    const animTime=Math.random()*900+700;
-    p.animate([{transform:`translate(${(Math.random()-0.5)*600}px,${-Math.random()*600}px) scale(0.6)`, opacity:0}], {duration:animTime, easing:"cubic-bezier(.2,.7,.3,1)"});
+    const p=document.createElement("div"); p.className="particle"; const s=Math.random()*10+6;
+    p.style.width=s+"px"; p.style.height=s+"px"; p.style.background=`hsl(${Math.random()*360},100%,65%)`;
+    p.style.left=(x+Math.random()*width)+"px"; p.style.top=y+"px"; document.body.appendChild(p);
+    p.animate([{transform:`translateY(${600+Math.random()*100}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1200+Math.random()*600,easing:"cubic-bezier(.2,.7,.3,1)"});
+    setTimeout(()=>p.remove(),1600);
+  }
+}
+
+function spawnFloatingLetters(count,x,y,w,h){
+  for(let i=0;i<count;i++){
+    const l=document.createElement("div"); l.textContent=WORDS[Math.floor(Math.random()*WORDS.length)][Math.floor(Math.random()*5)];
+    l.style.position="absolute"; l.style.color="white"; l.style.fontWeight="bold"; l.style.fontSize="24px";
+    l.style.left=(x+Math.random()*w)+"px"; l.style.top=(y+Math.random()*h)+"px"; document.body.appendChild(l);
+    const t=1200+Math.random()*400; l.animate([{transform:`translateY(-${100+Math.random()*80}px)`,opacity:0}],{duration:t,easing:"ease-out"});
+    setTimeout(()=>l.remove(),t);
+  }
+}
+
+function spawnSparkParticles(count,x,y){
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div"); p.className="particle"; const size=Math.random()*6+3;
+    p.style.width=size+"px"; p.style.height=size+"px"; p.style.background="rgba(46,255,87,"+(Math.random()*0.8+0.2)+")";
+    p.style.left=x+"px"; p.style.top=y+"px"; document.body.appendChild(p);
+    const animTime=800+Math.random()*600;
+    p.animate([{transform:`translate(${(Math.random()-0.5)*300}px,${(Math.random()-0.5)*300}px) scale(0.3)`,opacity:0}],{duration:animTime,easing:"ease-out"});
     setTimeout(()=>p.remove(),animTime);
   }
 }
 
-// Row confetti
-function spawnConfettiForRow(row){
-  for(let i=0;i<6;i++){
-    const p=document.createElement("div"); p.className="particle"; 
-    const size=Math.random()*10+6; p.style.width=size+"px"; p.style.height=size+"px"; 
-    p.style.background=`hsl(${Math.random()*360},80%,60%)`; 
-    const tile=getTile(row,i); const rect=tile.getBoundingClientRect();
-    p.style.left=rect.left+(rect.width/2)+"px"; p.style.top=rect.top+(rect.height/2)+"px"; 
-    document.body.appendChild(p);
-    const animTime=1200; p.animate([{transform:`translate(${(Math.random()-0.5)*80}px,${-Math.random()*120}px) scale(0.5)`, opacity:0}], {duration:animTime, easing:"cubic-bezier(.2,.7,.3,1)"}); 
-    setTimeout(()=>p.remove(),animTime);
-  }
+function pulseBoardGlow(){
+  board.querySelectorAll(".tile").forEach(t=>{t.classList.add("pop"); setTimeout(()=>t.classList.remove("pop"),800);});
+  keyboard.querySelectorAll("button").forEach(b=>{b.style.boxShadow="0 0 22px rgba(46,255,87,0.95)"; setTimeout(()=>b.style.boxShadow="",800);});
 }
 
-// Ambient greenish particles
-function spawnAmbientParticles(num){
-  for(let i=0;i<num;i++){
-    const p=document.createElement("div"); p.className="particle"; 
-    const size=Math.random()*6+3; p.style.width=size+"px"; p.style.height=size+"px"; 
-    p.style.background="rgba(255,255,255,"+Math.random()*0.2+")"; 
-    p.style.left=Math.random()*window.innerWidth+"px"; p.style.top=Math.random()*window.innerHeight+"px"; 
-    document.body.appendChild(p);
-    const animTime=Math.random()*4000+3000;
-    p.animate([{transform:`translate(${(Math.random()-0.5)*200}px,${(Math.random()-0.5)*200}px) scale(0.5)`, opacity:0}], {duration:animTime, easing:"ease-out"}); 
-    setTimeout(()=>p.remove(),animTime);
-  }
-}
+function showMessage(text,duration){const m=document.createElement("div"); m.className="centerMessage"; m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),duration);}
 
-// Secret Code
-function detectSecretCode(e){
-  if(e.ctrlKey && e.shiftKey && e.key.toUpperCase()==="A") showCodePopup();
-}
-
-function showCodePopup(){
-  document.getElementById("overlayBlock").style.display="block";
-  document.getElementById("codePopup").style.display="flex";
-  document.getElementById("codeInput").value="";
-}
-
-function closeCodePopup(){
-  document.getElementById("overlayBlock").style.display="none";
-  document.getElementById("codePopup").style.display="none";
-}
-
-function checkCode(){
-  const val=document.getElementById("codeInput").value;
-  if(val===SECRET_CODE){ alert("The word is: "+solution); closeCodePopup(); }
-  else { if(confirm("Code entered incorrect, you suck")) closeCodePopup(); }
-}
+// Secret code
+function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();}
+function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
+function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
+function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{if(confirm("Code entered incorrect, you suck")) closeCodePopup();}}
 </script>
 </body>
 </html>
