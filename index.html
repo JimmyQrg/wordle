@@ -3,53 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Infinite Wordle</title>
+<title>Infinite Wordle Fancy</title>
 <style>
   body {
     font-family: 'Arial Black', sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: white;
+    margin: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
-    margin: 0;
+    color: white;
     overflow-x: hidden;
+    animation: bgcycle 10s infinite linear;
+    background: linear-gradient(135deg, #008B8B, #4B0082);
+    transition: background 1s;
+  }
+
+  @keyframes bgcycle {
+    0% { background: linear-gradient(135deg, #008B8B, #4B0082); }
+    25% { background: linear-gradient(135deg, #4B0082, #00FFFF); }
+    50% { background: linear-gradient(135deg, #00FFFF, #4B0082); }
+    75% { background: linear-gradient(135deg, #4B0082, #008B8B); }
+    100% { background: linear-gradient(135deg, #008B8B, #4B0082); }
   }
 
   h1 {
     margin: 20px;
-    font-size: 2.2em;
+    font-size: 2.5em;
     letter-spacing: 3px;
-    text-shadow: 2px 2px 10px black;
+    text-shadow: 2px 2px 12px black;
   }
 
   #board {
     display: grid;
     grid-template-rows: repeat(6, 1fr);
-    gap: 10px;
+    gap: 12px;
     perspective: 1000px;
   }
 
   .row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+    gap: 12px;
   }
 
   .tile {
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 70px;
     background: #333;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 28px;
+    font-size: 30px;
     font-weight: bold;
-    border-radius: 10px;
+    border-radius: 12px;
     perspective: 1000px;
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    transform: scale(1);
+    transition: transform 0.2s;
   }
+
+  .tile.pop { transform: scale(1.1); }
 
   .inner {
     width: 100%;
@@ -58,7 +72,7 @@
     justify-content: center;
     align-items: center;
     background: #333;
-    border-radius: 10px;
+    border-radius: 12px;
     transform-style: preserve-3d;
     transition: transform 0.6s, background 0.3s, box-shadow 0.3s;
   }
@@ -81,20 +95,23 @@
 
   #controls { margin-top: 20px; }
 
-  button {
+  #controls button {
     margin: 5px;
-    padding: 10px 20px;
+    padding: 12px 25px;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     background: #444;
     color: white;
-    transition: background 0.3s, transform 0.2s;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    text-shadow: 1px 1px 2px black;
   }
-  button:hover { 
-    background: #666; 
+
+  #controls button:hover {
+    background: #666;
     transform: scale(1.1);
+    box-shadow: 0 0 12px #fff;
   }
 
   /* Keyboard */
@@ -124,11 +141,11 @@
   .kb-row button:hover {
     background: #888;
     transform: scale(1.1);
-    box-shadow: 0 0 10px #fff;
+    box-shadow: 0 0 12px #fff;
   }
 
   .kb-row button.wide {
-    flex: 1 0 80px;
+    flex: 1 0 90px;
   }
 
   /* Particle effect */
@@ -152,7 +169,8 @@
 <h1>Infinite Wordle</h1>
 <div id="board"></div>
 <div id="controls">
-  <button onclick="newGame()">New Word</button>
+  <button onclick="location.reload()">New Word</button>
+  <button onclick="giveUp()">Give Up</button>
 </div>
 <div id="keyboard"></div>
 
@@ -161,18 +179,25 @@ const words = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY",
                "IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY",
                "QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON",
                "YEAST","ZEBRA"];
-let solution = "";
+let solution = words[Math.floor(Math.random() * words.length)];
 let currentRow = 0;
 let currentCol = 0;
 let board;
 let inputLocked = false;
 
 function newGame() {
-  solution = words[Math.floor(Math.random() * words.length)];
-  board.innerHTML = "";
-  currentRow = 0;
-  currentCol = 0;
+  location.reload(); // simply reload page
+}
 
+function giveUp() {
+  alert("The word was: " + solution);
+  location.reload();
+}
+
+window.onload = () => {
+  board = document.getElementById("board");
+
+  // Build board
   for (let r = 0; r < 6; r++) {
     let row = document.createElement("div");
     row.className = "row";
@@ -189,76 +214,24 @@ function newGame() {
     }
     board.appendChild(row);
   }
-}
 
-// Keyboard handling
-function handleKey(e) {
-  if (inputLocked) return;
-  if (/^[a-zA-Z]$/.test(e.key) && currentCol < 5) {
-    getTile(currentRow, currentCol).querySelector(".letter").textContent = e.key.toUpperCase();
-    currentCol++;
-  } else if (e.key === "Backspace" && currentCol > 0) {
-    currentCol--;
-    getTile(currentRow, currentCol).querySelector(".letter").textContent = "";
-  } else if (e.key === "Enter" && currentCol === 5) {
-    submitRow();
+  createKeyboard();
+  document.addEventListener("keydown", handleKey);
+
+  // Particles
+  for(let i=0;i<50;i++){
+    let p=document.createElement("div");
+    p.className="particle";
+    p.style.left=Math.random()*window.innerWidth+"px";
+    p.style.top=Math.random()*window.innerHeight+"px";
+    p.style.animationDuration=(3+Math.random()*5)+"s";
+    p.style.width=3+Math.random()*4+"px";
+    p.style.height=3+Math.random()*4+"px";
+    document.body.appendChild(p);
   }
 }
 
-function getTile(r, c) {
-  return board.children[r].children[c];
-}
-
-function submitRow() {
-  let guess = "";
-  for (let c = 0; c < 5; c++) {
-    guess += getTile(currentRow, c).querySelector(".letter").textContent;
-  }
-  if (guess.length < 5) return;
-
-  inputLocked = true;
-  let solutionLetters = solution.split('');
-  let colors = Array(5).fill('absent');
-
-  for (let i = 0; i < 5; i++) {
-    if (guess[i] === solution[i]) {
-      colors[i] = 'correct';
-      solutionLetters[i] = null;
-    }
-  }
-  for (let i = 0; i < 5; i++) {
-    if (colors[i] === 'correct') continue;
-    let idx = solutionLetters.indexOf(guess[i]);
-    if (idx !== -1) {
-      colors[i] = 'present';
-      solutionLetters[idx] = null;
-    }
-  }
-
-  [...guess].forEach((ch, idx) => {
-    setTimeout(() => {
-      let tile = getTile(currentRow, idx).querySelector(".inner");
-      tile.classList.add("flipping");
-      setTimeout(() => {
-        tile.classList.add(colors[idx]);
-        tile.classList.remove("flipping");
-        // Remove glow immediately after flipping
-        setTimeout(() => tile.style.boxShadow = "", 50);
-        if (idx === 4) {
-          inputLocked = false;
-          if (guess === solution) {
-            showMessage("🎉 You guessed it!");
-          } else {
-            currentRow++;
-            currentCol = 0;
-            if (currentRow === 6) showMessage("❌ Out of tries! Word was " + solution);
-          }
-        }
-      }, 300);
-    }, idx * 400);
-  });
-}
-
+// Keyboard
 function createKeyboard() {
   const keyboard = document.getElementById("keyboard");
   const rows = [
@@ -267,7 +240,6 @@ function createKeyboard() {
     "ZXCVBNM"
   ];
 
-  // First 3 rows: letters
   rows.forEach(letters => {
     let rowDiv = document.createElement("div");
     rowDiv.className = "kb-row";
@@ -280,61 +252,104 @@ function createKeyboard() {
     keyboard.appendChild(rowDiv);
   });
 
-  // Fourth row: Enter and Backspace
+  // Fourth row: Enter & Backspace
   let controlRow = document.createElement("div");
   controlRow.className = "kb-row";
   let enterBtn = document.createElement("button");
   enterBtn.textContent = "Enter";
   enterBtn.className = "wide";
-  enterBtn.onclick = () => handleKey({key: "Enter"});
+  enterBtn.onclick = () => handleKey({key:"Enter"});
   controlRow.appendChild(enterBtn);
 
   let backBtn = document.createElement("button");
   backBtn.textContent = "Backspace";
   backBtn.className = "wide";
-  backBtn.onclick = () => handleKey({key: "Backspace"});
+  backBtn.onclick = () => handleKey({key:"Backspace"});
   controlRow.appendChild(backBtn);
 
   keyboard.appendChild(controlRow);
 }
 
+// Input handling
+function handleKey(e) {
+  if(inputLocked) return;
+  if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
+    getTile(currentRow,currentCol).querySelector(".letter").textContent=e.key.toUpperCase();
+    currentCol++;
+  }else if(e.key==="Backspace" && currentCol>0){
+    currentCol--;
+    getTile(currentRow,currentCol).querySelector(".letter").textContent="";
+  }else if(e.key==="Enter" && currentCol===5){
+    submitRow();
+  }
+}
+
+function getTile(r,c){ return board.children[r].children[c]; }
+
+function submitRow(){
+  let guess="";
+  for(let c=0;c<5;c++){ guess+=getTile(currentRow,c).querySelector(".letter").textContent; }
+  if(guess.length<5) return;
+
+  inputLocked=true;
+  let solutionLetters=solution.split('');
+  let colors=Array(5).fill('absent');
+
+  for(let i=0;i<5;i++){
+    if(guess[i]===solution[i]){ colors[i]='correct'; solutionLetters[i]=null; }
+  }
+  for(let i=0;i<5;i++){
+    if(colors[i]==='correct') continue;
+    let idx=solutionLetters.indexOf(guess[i]);
+    if(idx!==-1){ colors[i]='present'; solutionLetters[idx]=null; }
+  }
+
+  [...guess].forEach((ch,idx)=>{
+    setTimeout(()=>{
+      let tile=getTile(currentRow,idx).querySelector(".inner");
+      let parent=getTile(currentRow,idx);
+      parent.classList.add("pop");
+      tile.classList.add("flipping");
+      setTimeout(()=>{
+        tile.classList.add(colors[idx]);
+        tile.classList.remove("flipping");
+        // Remove glow and pop immediately
+        setTimeout(()=>{
+          tile.style.boxShadow="";
+          parent.classList.remove("pop");
+        },50);
+        if(idx===4){
+          inputLocked=false;
+          if(guess===solution) showMessage("🎉 You guessed it!");
+          else{
+            currentRow++;
+            currentCol=0;
+            if(currentRow===6) showMessage("❌ Out of tries! Word was "+solution);
+          }
+        }
+      },300);
+    }, idx*400);
+  });
+}
+
 // Fancy message
-function showMessage(msg) {
-  let div = document.createElement("div");
-  div.textContent = msg;
-  div.style.position = "fixed";
-  div.style.top = "50%";
-  div.style.left = "50%";
-  div.style.transform = "translate(-50%, -50%)";
-  div.style.background = "rgba(0,0,0,0.8)";
-  div.style.padding = "20px 40px";
-  div.style.borderRadius = "15px";
-  div.style.fontSize = "24px";
-  div.style.textAlign = "center";
-  div.style.zIndex = "1000";
-  div.style.boxShadow = "0 0 20px white";
+function showMessage(msg){
+  let div=document.createElement("div");
+  div.textContent=msg;
+  div.style.position="fixed";
+  div.style.top="50%";
+  div.style.left="50%";
+  div.style.transform="translate(-50%, -50%)";
+  div.style.background="rgba(0,0,0,0.8)";
+  div.style.padding="20px 50px";
+  div.style.borderRadius="20px";
+  div.style.fontSize="26px";
+  div.style.textAlign="center";
+  div.style.zIndex="1000";
+  div.style.boxShadow="0 0 25px white";
   document.body.appendChild(div);
-  setTimeout(() => div.remove(), 2500);
+  setTimeout(()=>div.remove(),2500);
 }
-
-// Particle background
-for(let i=0;i<40;i++){
-  let p=document.createElement("div");
-  p.className="particle";
-  p.style.left=Math.random()*window.innerWidth+"px";
-  p.style.top=Math.random()*window.innerHeight+"px";
-  p.style.animationDuration=(3+Math.random()*5)+"s";
-  p.style.width=3+Math.random()*4+"px";
-  p.style.height=3+Math.random()*4+"px";
-  document.body.appendChild(p);
-}
-
-window.onload = () => {
-  board = document.getElementById("board");
-  newGame();
-  createKeyboard();
-  document.addEventListener("keydown", handleKey);
-};
 </script>
 </body>
 </html>
