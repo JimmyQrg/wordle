@@ -5,166 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Infinite Wordle Fancy</title>
 <style>
-  body {
-    font-family: 'Arial Black', sans-serif;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    color: white;
-    overflow-x: hidden;
-    /* Smooth gradient animation */
-    background: linear-gradient(135deg, #008B8B, #4B0082);
-    background-size: 400% 400%;
-    animation: gradientShift 20s ease infinite;
-    transition: background 1s;
-  }
+body {
+  font-family: 'Arial Black', sans-serif;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  color: white;
+  overflow-x: hidden;
+  background: linear-gradient(135deg,#008B8B,#4B0082,#00FFFF,#4B0082);
+  background-size: 400% 400%;
+  animation: gradientShift 30s ease infinite;
+}
 
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    25% { background-position: 50% 50%; }
-    50% { background-position: 100% 50%; }
-    75% { background-position: 50% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+@keyframes gradientShift {
+  0% { background-position:0% 50%; }
+  50% { background-position:100% 50%; }
+  100% { background-position:0% 50%; }
+}
 
-  h1 {
-    margin: 20px;
-    font-size: 2.5em;
-    letter-spacing: 3px;
-    text-shadow: 2px 2px 12px black;
-  }
+h1 {
+  margin: 20px;
+  font-size: 2.5em;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px 12px black;
+}
 
-  #board {
-    display: grid;
-    grid-template-rows: repeat(6, 1fr);
-    gap: 12px;
-    perspective: 1000px;
-  }
+#board {
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  gap: 12px;
+  perspective: 1000px;
+}
 
-  .row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-  }
+.row {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 12px;
+}
 
-  .tile {
-    width: 70px;
-    height: 70px;
-    background: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 30px;
-    font-weight: bold;
-    border-radius: 12px;
-    perspective: 1000px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
-    transform: scale(1);
-    transition: transform 0.2s;
-  }
+.tile {
+  width:70px;
+  height:70px;
+  background:#333;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:30px;
+  font-weight:bold;
+  border-radius:12px;
+  perspective:1000px;
+  box-shadow:0 0 5px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+}
 
-  .tile.pop { transform: scale(1.1); }
+.tile.keypress { transform: scale(1.2); }
 
-  .inner {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #333;
-    border-radius: 12px;
-    transform-style: preserve-3d;
-    transition: transform 0.6s, background 0.3s, box-shadow 0.3s;
-  }
+.tile.pop { transform: scale(1.1); }
 
-  .inner.correct { 
-    background: #6aaa64; 
-    box-shadow: 0 0 15px #6aaa64;
-  }
-  .inner.present { 
-    background: #c9b458; 
-    box-shadow: 0 0 15px #c9b458;
-  }
-  .inner.absent  { 
-    background: #787c7e; 
-    box-shadow: 0 0 15px #787c7e;
-  }
+.tile.shake { animation: shake 0.3s; }
 
-  .flipping { transform: rotateX(180deg); }
-  .letter { backface-visibility: hidden; transform: rotateX(0deg); }
+@keyframes shake {
+  0%{transform: translateX(0);}
+  25%{transform: translateX(-5px);}
+  50%{transform: translateX(5px);}
+  75%{transform: translateX(-5px);}
+  100%{transform: translateX(0);}
+}
 
-  #controls { margin-top: 20px; }
+.inner {
+  width:100%;
+  height:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#333;
+  border-radius:12px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s, background 0.3s, box-shadow 0.3s;
+}
 
-  #controls button {
-    margin: 5px;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    background: #444;
-    color: white;
-    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-    text-shadow: 1px 1px 2px black;
-  }
+.inner.correct { background:#6aaa64; box-shadow:0 0 20px #6aaa64; }
+.inner.present { background:#c9b458; box-shadow:0 0 20px #c9b458; }
+.inner.absent { background:#787c7e; box-shadow:0 0 10px #787c7e; }
 
-  #controls button:hover {
-    background: #666;
-    transform: scale(1.1);
-    box-shadow: 0 0 12px #fff;
-  }
+.flipping { transform: rotateX(180deg); }
+.letter { backface-visibility: hidden; transform: rotateX(0deg); }
 
-  /* Keyboard */
-  #keyboard {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+#controls { margin-top: 20px; }
+#controls button {
+  margin:5px; padding:12px 25px;
+  border:none; border-radius:10px;
+  cursor:pointer; font-weight:bold;
+  background:#444; color:white;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+  text-shadow:1px 1px 2px black;
+}
+#controls button:hover { background:#666; transform:scale(1.1); box-shadow:0 0 12px #fff; }
 
-  .kb-row {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
+#keyboard { margin-top:20px; display:flex; flex-direction:column; align-items:center; }
+.kb-row { display:flex; justify-content:center; gap:6px; margin-bottom:6px; }
+.kb-row button {
+  padding:12px 10px; font-size:18px; border-radius:6px; background:#555; color:white; transition:all 0.2s;
+}
+.kb-row button:hover { background:#888; transform:scale(1.1); box-shadow:0 0 12px #fff; }
+.kb-row button.wide { flex:1 0 90px; }
 
-  .kb-row button {
-    padding: 12px 10px;
-    font-size: 18px;
-    border-radius: 6px;
-    background: #555;
-    color: white;
-    transition: all 0.2s;
-  }
+/* particle */
+.particle {
+  position:absolute; width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,0.8);
+  animation: float 5s linear infinite;
+}
+@keyframes float {
+  0%{transform:translateY(0px) rotate(0deg); opacity:1;}
+  50%{transform:translateY(-200px) rotate(180deg); opacity:0.5;}
+  100%{transform:translateY(-400px) rotate(360deg); opacity:0;}
+}
 
-  .kb-row button:hover {
-    background: #888;
-    transform: scale(1.1);
-    box-shadow: 0 0 12px #fff;
-  }
-
-  .kb-row button.wide {
-    flex: 1 0 90px;
-  }
-
-  /* Particle effect */
-  .particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 50%;
-    animation: float 5s linear infinite;
-  }
-
-  @keyframes float {
-    0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
-    50% { transform: translateY(-200px) rotate(180deg); opacity: 0.5; }
-    100% { transform: translateY(-400px) rotate(360deg); opacity: 0; }
-  }
+/* code popup */
+#codePopup {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.9); padding:30px; border-radius:15px;
+  display:none; flex-direction:column; align-items:center;
+  z-index:2000; box-shadow:0 0 25px white; color:white;
+}
+#codePopup input { padding:10px; font-size:18px; border-radius:6px; border:none; margin-bottom:15px; }
+#codePopup button { padding:8px 15px; font-size:16px; border-radius:6px; border:none; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -175,6 +143,13 @@
   <button onclick="giveUp()">Give Up</button>
 </div>
 <div id="keyboard"></div>
+
+<!-- Secret code popup -->
+<div id="codePopup">
+  <div>Enter Code:</div>
+  <input type="text" id="codeInput" placeholder="Type your code here">
+  <button onclick="checkCode()">Submit</button>
+</div>
 
 <script>
 const words = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY",
@@ -187,96 +162,69 @@ let currentCol = 0;
 let board;
 let inputLocked = false;
 
-function giveUp() {
-  alert("The word was: " + solution);
-  location.reload();
-}
+function giveUp(){ alert("The word was: "+solution); location.reload(); }
 
-window.onload = () => {
-  board = document.getElementById("board");
-
-  // Build board
-  for (let r = 0; r < 6; r++) {
-    let row = document.createElement("div");
-    row.className = "row";
-    for (let c = 0; c < 5; c++) {
-      let tile = document.createElement("div");
-      tile.className = "tile";
-      let inner = document.createElement("div");
-      inner.className = "inner";
-      let letter = document.createElement("div");
-      letter.className = "letter";
-      inner.appendChild(letter);
-      tile.appendChild(inner);
-      row.appendChild(tile);
+window.onload = ()=>{
+  board=document.getElementById("board");
+  for(let r=0;r<6;r++){
+    let row=document.createElement("div"); row.className="row";
+    for(let c=0;c<5;c++){
+      let tile=document.createElement("div"); tile.className="tile";
+      let inner=document.createElement("div"); inner.className="inner";
+      let letter=document.createElement("div"); letter.className="letter";
+      inner.appendChild(letter); tile.appendChild(inner); row.appendChild(tile);
     }
     board.appendChild(row);
   }
-
   createKeyboard();
   document.addEventListener("keydown", handleKey);
+  document.addEventListener("keydown", detectSecretCode);
 
-  // Particles
+  // particles
   for(let i=0;i<50;i++){
-    let p=document.createElement("div");
-    p.className="particle";
+    let p=document.createElement("div"); p.className="particle";
     p.style.left=Math.random()*window.innerWidth+"px";
     p.style.top=Math.random()*window.innerHeight+"px";
     p.style.animationDuration=(3+Math.random()*5)+"s";
-    p.style.width=3+Math.random()*4+"px";
-    p.style.height=3+Math.random()*4+"px";
+    p.style.width=3+Math.random()*4+"px"; p.style.height=3+Math.random()*4+"px";
     document.body.appendChild(p);
   }
 }
 
-// Keyboard
-function createKeyboard() {
-  const keyboard = document.getElementById("keyboard");
-  const rows = [
-    "QWERTYUIOP",
-    "ASDFGHJKL",
-    "ZXCVBNM"
-  ];
-
-  rows.forEach(letters => {
-    let rowDiv = document.createElement("div");
-    rowDiv.className = "kb-row";
-    for (let ch of letters) {
-      let btn = document.createElement("button");
-      btn.textContent = ch;
-      btn.onclick = () => handleKey({key: ch});
+// keyboard
+function createKeyboard(){
+  const keyboard=document.getElementById("keyboard");
+  const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  rows.forEach(letters=>{
+    let rowDiv=document.createElement("div"); rowDiv.className="kb-row";
+    for(let ch of letters){
+      let btn=document.createElement("button"); btn.textContent=ch;
+      btn.onclick=()=>handleKey({key:ch});
       rowDiv.appendChild(btn);
     }
     keyboard.appendChild(rowDiv);
   });
-
-  // Fourth row: Enter & Backspace
-  let controlRow = document.createElement("div");
-  controlRow.className = "kb-row";
-  let enterBtn = document.createElement("button");
-  enterBtn.textContent = "Enter";
-  enterBtn.className = "wide";
-  enterBtn.onclick = () => handleKey({key:"Enter"});
-  controlRow.appendChild(enterBtn);
-
-  let backBtn = document.createElement("button");
-  backBtn.textContent = "Backspace";
-  backBtn.className = "wide";
-  backBtn.onclick = () => handleKey({key:"Backspace"});
-  controlRow.appendChild(backBtn);
-
+  // Enter/Backspace row
+  let controlRow=document.createElement("div"); controlRow.className="kb-row";
+  let enterBtn=document.createElement("button"); enterBtn.textContent="Enter"; enterBtn.className="wide";
+  enterBtn.onclick=()=>handleKey({key:"Enter"}); controlRow.appendChild(enterBtn);
+  let backBtn=document.createElement("button"); backBtn.textContent="Backspace"; backBtn.className="wide";
+  backBtn.onclick=()=>handleKey({key:"Backspace"}); controlRow.appendChild(backBtn);
   keyboard.appendChild(controlRow);
 }
 
-// Input handling
-function handleKey(e) {
+// input
+function handleKey(e){
   if(inputLocked) return;
   if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
-    getTile(currentRow,currentCol).querySelector(".letter").textContent=e.key.toUpperCase();
+    const tile=getTile(currentRow,currentCol);
+    const letterDiv=tile.querySelector(".letter");
+    letterDiv.textContent=e.key.toUpperCase();
+    tile.classList.add("keypress");
+    setTimeout(()=>tile.classList.remove("keypress"),200); // quick pop
     currentCol++;
   }else if(e.key==="Backspace" && currentCol>0){
-    currentCol--;
-    getTile(currentRow,currentCol).querySelector(".letter").textContent="";
+    currentCol--; getTile(currentRow,currentCol).querySelector(".letter").textContent="";
   }else if(e.key==="Enter" && currentCol===5){
     submitRow();
   }
@@ -285,67 +233,80 @@ function handleKey(e) {
 function getTile(r,c){ return board.children[r].children[c]; }
 
 function submitRow(){
-  let guess="";
-  for(let c=0;c<5;c++){ guess+=getTile(currentRow,c).querySelector(".letter").textContent; }
+  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
   if(guess.length<5) return;
-
   inputLocked=true;
-  let solutionLetters=solution.split('');
-  let colors=Array(5).fill('absent');
-
-  for(let i=0;i<5;i++){
-    if(guess[i]===solution[i]){ colors[i]='correct'; solutionLetters[i]=null; }
-  }
-  for(let i=0;i<5;i++){
-    if(colors[i]==='correct') continue;
-    let idx=solutionLetters.indexOf(guess[i]);
-    if(idx!==-1){ colors[i]='present'; solutionLetters[idx]=null; }
-  }
+  let solutionLetters=solution.split(''); let colors=Array(5).fill('absent');
+  for(let i=0;i<5;i++){ if(guess[i]===solution[i]){ colors[i]='correct'; solutionLetters[i]=null; } }
+  for(let i=0;i<5;i++){ if(colors[i]!=='correct'){ let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){ colors[i]='present'; solutionLetters[idx]=null; } } }
 
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
-      let tile=getTile(currentRow,idx).querySelector(".inner");
-      let parent=getTile(currentRow,idx);
+      let tile=getTile(currentRow,idx).querySelector(".inner"); let parent=getTile(currentRow,idx);
       parent.classList.add("pop");
       tile.classList.add("flipping");
       setTimeout(()=>{
-        tile.classList.add(colors[idx]);
-        tile.classList.remove("flipping");
-        setTimeout(()=>{
-          tile.style.boxShadow="";
-          parent.classList.remove("pop");
-        },50);
+        tile.classList.add(colors[idx]); tile.classList.remove("flipping");
+        // effects when row submitted
         if(idx===4){
           inputLocked=false;
-          if(guess===solution) showMessage("🎉 You guessed it!");
+          if(guess===solution) showEffects("🎉 You guessed it!");
           else{
-            currentRow++;
-            currentCol=0;
-            if(currentRow===6) showMessage("❌ Out of tries! Word was "+solution);
+            currentRow++; currentCol=0;
+            if(currentRow===6) showEffects("❌ Out of tries! Word was "+solution);
           }
         }
       },300);
-    }, idx*400);
+    },idx*400);
   });
 }
 
-// Fancy message
+// visual effects when guessing correct or finished
+function showEffects(msg){
+  // 1. pop tiles
+  const row=board.children[currentRow-1]||board.children[currentRow];
+  if(row){ [...row.children].forEach(t=>{ t.classList.add("pop"); setTimeout(()=>t.classList.remove("pop"),500); }); }
+  // 2. glow message
+  showMessage(msg);
+  // 3. confetti particles
+  for(let i=0;i<30;i++){
+    const p=document.createElement("div");
+    p.className="particle"; p.style.width="4px"; p.style.height="4px";
+    p.style.left=(Math.random()*window.innerWidth)+"px"; p.style.top=(Math.random()*window.innerHeight)+"px";
+    p.style.background="rgba(255,255,0,0.9)"; p.style.animationDuration=(1+Math.random()*2)+"s";
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),2000);
+  }
+}
+
+// fancy message
 function showMessage(msg){
   let div=document.createElement("div");
   div.textContent=msg;
-  div.style.position="fixed";
-  div.style.top="50%";
-  div.style.left="50%";
-  div.style.transform="translate(-50%, -50%)";
-  div.style.background="rgba(0,0,0,0.8)";
-  div.style.padding="20px 50px";
-  div.style.borderRadius="20px";
-  div.style.fontSize="26px";
-  div.style.textAlign="center";
-  div.style.zIndex="1000";
-  div.style.boxShadow="0 0 25px white";
+  div.style.position="fixed"; div.style.top="50%"; div.style.left="50%"; div.style.transform="translate(-50%,-50%)";
+  div.style.background="rgba(0,0,0,0.8)"; div.style.padding="20px 50px"; div.style.borderRadius="20px";
+  div.style.fontSize="26px"; div.style.textAlign="center"; div.style.zIndex="1000"; div.style.boxShadow="0 0 25px white";
   document.body.appendChild(div);
   setTimeout(()=>div.remove(),2500);
+}
+
+// secret code detection
+function detectSecretCode(e){
+  if(e.ctrlKey && e.shiftKey && e.code==="KeyA"){
+    document.getElementById("codePopup").style.display="flex";
+  }
+}
+
+function checkCode(){
+  const val=document.getElementById("codeInput").value;
+  const correctCode="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
+  if(val===correctCode){
+    alert("Correct! The word is: "+solution);
+  }else{
+    alert("Code entered incorrect, you suck");
+  }
+  document.getElementById("codePopup").style.display="none";
+  document.getElementById("codeInput").value="";
 }
 </script>
 </body>
