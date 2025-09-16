@@ -48,7 +48,6 @@
     font-weight: bold;
     border-radius: 10px;
     perspective: 1000px;
-    transition: transform 0.3s;
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
   }
 
@@ -80,9 +79,7 @@
   .flipping { transform: rotateX(180deg); }
   .letter { backface-visibility: hidden; transform: rotateX(0deg); }
 
-  #controls {
-    margin-top: 20px;
-  }
+  #controls { margin-top: 20px; }
 
   button {
     margin: 5px;
@@ -131,7 +128,7 @@
   }
 
   .kb-row button.wide {
-    flex: 1 0 70px;
+    flex: 1 0 80px;
   }
 
   /* Particle effect */
@@ -245,6 +242,8 @@ function submitRow() {
       setTimeout(() => {
         tile.classList.add(colors[idx]);
         tile.classList.remove("flipping");
+        // Remove glow immediately after flipping
+        setTimeout(() => tile.style.boxShadow = "", 50);
         if (idx === 4) {
           inputLocked = false;
           if (guess === solution) {
@@ -268,7 +267,8 @@ function createKeyboard() {
     "ZXCVBNM"
   ];
 
-  rows.forEach((letters, rIndex) => {
+  // First 3 rows: letters
+  rows.forEach(letters => {
     let rowDiv = document.createElement("div");
     rowDiv.className = "kb-row";
     for (let ch of letters) {
@@ -277,23 +277,25 @@ function createKeyboard() {
       btn.onclick = () => handleKey({key: ch});
       rowDiv.appendChild(btn);
     }
-
-    if (rIndex === 1) {
-      let enterBtn = document.createElement("button");
-      enterBtn.textContent = "Enter";
-      enterBtn.className = "wide";
-      enterBtn.onclick = () => handleKey({key: "Enter"});
-      rowDiv.appendChild(enterBtn);
-
-      let backBtn = document.createElement("button");
-      backBtn.textContent = "Backspace";
-      backBtn.className = "wide";
-      backBtn.onclick = () => handleKey({key: "Backspace"});
-      rowDiv.appendChild(backBtn);
-    }
-
     keyboard.appendChild(rowDiv);
   });
+
+  // Fourth row: Enter and Backspace
+  let controlRow = document.createElement("div");
+  controlRow.className = "kb-row";
+  let enterBtn = document.createElement("button");
+  enterBtn.textContent = "Enter";
+  enterBtn.className = "wide";
+  enterBtn.onclick = () => handleKey({key: "Enter"});
+  controlRow.appendChild(enterBtn);
+
+  let backBtn = document.createElement("button");
+  backBtn.textContent = "Backspace";
+  backBtn.className = "wide";
+  backBtn.onclick = () => handleKey({key: "Backspace"});
+  controlRow.appendChild(backBtn);
+
+  keyboard.appendChild(controlRow);
 }
 
 // Fancy message
