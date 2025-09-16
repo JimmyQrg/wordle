@@ -3,656 +3,266 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Infinite Wordle</title>
+<title>Infinite Wordle — Fancy</title>
 <style>
-  :root{
-    --tile-size:70px;
-  }
-
-  /* page + smooth gradient background */
-  html,body{
-    height:100%;
-    margin:0;
-  }
+  :root{ --tile-size:70px; }
+  html,body{ height:100%; margin:0; }
   body {
     font-family: "Arial Black", Arial, sans-serif;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    min-height:100vh;
-    color:white;
-    overflow-x:hidden;
-    /* gradient colors will smoothly move using background-position */
+    display:flex; flex-direction:column; align-items:center; min-height:100vh;
+    color:white; overflow-x:hidden;
     background: linear-gradient(135deg, #004B4B 0%, #6A2C8C 33%, #00AFAF 66%, #6A2C8C 100%);
-    background-size: 300% 300%;
-    animation: gradientShift 24s ease-in-out infinite;
-    transition: background 1s;
+    background-size: 300% 300%; animation: gradientShift 24s ease-in-out infinite; transition: background 1s;
   }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    33% { background-position: 50% 50%; }
-    66% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-
-  h1 {
-    margin:20px;
-    font-size:2.4rem;
-    letter-spacing:3px;
-    text-shadow: 2px 2px 12px rgba(0,0,0,0.7);
-  }
-
-  /* board */
-  #board {
-    display:grid;
-    grid-template-rows: repeat(6, 1fr);
-    gap: 12px;
-    perspective: 1000px;
-    margin-bottom:12px;
-  }
-  .row {
-    display:grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-  }
-
-  .tile {
-    width: var(--tile-size);
-    height: var(--tile-size);
-    background: #333;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size: 30px;
-    font-weight:bold;
-    border-radius: 12px;
-    perspective: 1000px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.6);
-    transition: transform 0.2s;
-  }
-
-  /* quick keypress pop */
+  @keyframes gradientShift { 0%{background-position:0% 50%;}33%{background-position:50% 50%;}66%{background-position:100% 50%;}100%{background-position:0% 50%;} }
+  h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow: 2px 2px 12px rgba(0,0,0,0.7);}
+  #board { display:grid; grid-template-rows: repeat(6, 1fr); gap:12px; perspective:1000px; margin-bottom:12px; }
+  .row { display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; }
+  .tile { width:var(--tile-size); height:var(--tile-size); background:#333; display:flex; justify-content:center; align-items:center; font-size:30px; font-weight:bold; border-radius:12px; perspective:1000px; box-shadow:0 0 5px rgba(0,0,0,0.6); transition: transform 0.2s; }
   .tile.keypress { transform: scale(1.2); }
-
-  /* small pop used at submit landing */
   .tile.pop { transform: scale(1.08); }
-
-  /* shaking a single tile (e.g., wrong) */
   .tile.shake { animation: shake 0.36s; }
-  @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    50% { transform: translateX(6px); }
-    75% { transform: translateX(-6px); }
-    100% { transform: translateX(0); }
-  }
-
-  .inner {
-    width:100%;
-    height:100%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#333;
-    border-radius:12px;
-    transform-style:preserve-3d;
-    transition: transform 0.62s cubic-bezier(.2,.9,.3,1), background 0.2s, box-shadow 0.2s;
-  }
-
-  /* colors during/after flip */
-  .inner.correct { background: #2ea44f; /* green */ }
-  .inner.present { background: #c9b458; /* yellow */ }
-  .inner.absent  { background: #5f6368; /* gray */ }
-
-  /* glow classes (we'll remove box-shadow inline after flip ends) */
-  .inner.glow-correct { box-shadow: 0 0 22px rgba(46,164,79,0.9); }
-  .inner.glow-present { box-shadow: 0 0 22px rgba(201,180,88,0.95); }
-  .inner.glow-absent  { box-shadow: 0 0 14px rgba(95,99,104,0.9); }
-
+  @keyframes shake {0%{transform:translateX(0);}25%{transform:translateX(-6px);}50%{transform:translateX(6px);}75%{transform:translateX(-6px);}100%{transform:translateX(0);}}
+  .inner { width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#333; border-radius:12px; transform-style:preserve-3d; transition: transform 0.62s cubic-bezier(.2,.9,.3,1), background 0.2s, box-shadow 0.2s; }
+  .inner.correct { background: #2ea44f; }
+  .inner.present { background: #c9b458; }
+  .inner.absent  { background: #5f6368; }
+  .inner.glow-correct { box-shadow:0 0 22px rgba(46,164,79,0.9); }
+  .inner.glow-present { box-shadow:0 0 22px rgba(201,180,88,0.95); }
+  .inner.glow-absent { box-shadow:0 0 14px rgba(95,99,104,0.9); }
   .flipping { transform: rotateX(180deg); }
   .letter { backface-visibility:hidden; transform: rotateX(0deg); user-select:none; }
-
-  /* controls */
-  #controls {
-    margin-top:8px;
-    margin-bottom:10px;
-  }
-  #controls button {
-    margin:6px;
-    padding:10px 20px;
-    border-radius:10px;
-    border:none;
-    font-weight:bold;
-    background: rgba(0,0,0,0.35);
-    color:white;
-    cursor:pointer;
-    transition: transform .18s, box-shadow .18s, background .18s;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-  }
-  #controls button:hover { transform: translateY(-3px) scale(1.03); box-shadow:0 0 18px rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); }
-
-  /* keyboard */
+  #controls { margin-top:8px; margin-bottom:10px; }
+  #controls button { margin:6px; padding:10px 20px; border-radius:10px; border:none; font-weight:bold; background: rgba(0,0,0,0.35); color:white; cursor:pointer; transition: transform .18s, box-shadow .18s, background .18s; text-shadow: 1px 1px 3px rgba(0,0,0,0.6);}
+  #controls button:hover { transform: translateY(-3px) scale(1.03); box-shadow:0 0 18px rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);}
   #keyboard { margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:10; }
   .kb-row { display:flex; gap:6px; justify-content:center; }
-  .kb-row button {
-    padding:10px 12px; border-radius:6px; border:none; background:#444; color:white; font-weight:bold; cursor:pointer;
-    transition: transform .12s, box-shadow .12s, background .12s;
-  }
+  .kb-row button { padding:10px 12px; border-radius:6px; border:none; background:#444; color:white; font-weight:bold; cursor:pointer; transition: transform .12s, box-shadow .12s, background .12s; }
   .kb-row button:hover { transform: scale(1.06); box-shadow:0 0 12px rgba(255,255,255,0.08); background:#666; }
   .kb-row button.wide { min-width:90px; padding-left:18px; padding-right:18px; }
-
-  /* page shake (for victory) */
-  @keyframes shakeScreen {
-    0% { transform: translate(0,0); }
-    12% { transform: translate(-12px,8px); }
-    24% { transform: translate(10px,-8px); }
-    36% { transform: translate(-8px,8px); }
-    48% { transform: translate(10px,-8px); }
-    60% { transform: translate(-6px,6px); }
-    72% { transform: translate(6px,-6px); }
-    84% { transform: translate(-4px,4px); }
-    100% { transform: translate(0,0); }
-  }
+  @keyframes shakeScreen {0%{transform:translate(0,0);}12%{transform:translate(-12px,8px);}24%{transform:translate(10px,-8px);}36%{transform:translate(-8px,8px);}48%{transform:translate(10px,-8px);}60%{transform:translate(-6px,6px);}72%{transform:translate(6px,-6px);}84%{transform:translate(-4px,4px);}100%{transform:translate(0,0);}}
   .shakeBody { animation: shakeScreen 900ms ease-in-out both; }
-
-  /* falling clones (shatter) */
-  .fallPiece {
-    position:absolute;
-    will-change: transform, opacity;
-    pointer-events:none;
-    animation: fallDown 1600ms cubic-bezier(.2,.7,.3,1) forwards;
-  }
-  @keyframes fallDown {
-    0% { opacity:1; transform: translateY(0) rotate(0deg) scale(1); }
-    100% { opacity:0; transform: translateY(900px) rotate(720deg) scale(.8); }
-  }
-
-  /* generic particle (we will color them green for victory) */
-  .particle {
-    position:absolute; border-radius:50%;
-    pointer-events:none; will-change: transform, opacity;
-    animation: particleMove 900ms ease-out forwards;
-  }
-  @keyframes particleMove {
-    0% { transform: translateY(0) scale(1); opacity:1; }
-    100% { transform: translateY(-200px) translateX(80px) scale(0.6); opacity:0; }
-  }
-
-  /* secret code popup */
-  #codePopup {
-    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
-    background: rgba(0,0,0,0.86); padding:22px; border-radius:12px;
-    display:none; flex-direction:column; gap:10px; align-items:center; z-index:3000;
-    box-shadow: 0 0 30px rgba(0,0,0,0.6);
-  }
-  #codePopup input {
-    width:360px; max-width:86vw; padding:10px 12px; font-size:16px; border-radius:8px; border:none;
-  }
+  .fallPiece { position:absolute; will-change: transform, opacity; pointer-events:none; animation: fallDown 1600ms cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes fallDown {0%{opacity:1; transform:translateY(0) rotate(0deg) scale(1);}100%{opacity:0; transform:translateY(900px) rotate(720deg) scale(.8);}}
+  .particle { position:absolute; border-radius:50%; pointer-events:none; will-change: transform, opacity; animation: particleMove 900ms ease-out forwards; }
+  @keyframes particleMove {0%{transform:translateY(0) scale(1); opacity:1;}100%{transform:translateY(-200px) translateX(80px) scale(0.6); opacity:0;}}
+  #codePopup { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background: rgba(0,0,0,0.86); padding:22px; border-radius:12px; display:none; flex-direction:column; gap:10px; align-items:center; z-index:3000; box-shadow:0 0 30px rgba(0,0,0,0.6);}
+  #codePopup input { width:360px; max-width:86vw; padding:10px 12px; font-size:16px; border-radius:8px; border:none; }
   #codePopup .codeRow { display:flex; gap:8px; }
-  #overlayBlock {
-    position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display:none; z-index:2900;
-  }
-
-  /* small message style (center) */
-  .centerMessage {
-    position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7);
-    border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08);
-  }
-
-  /* responsive adjustments */
-  @media (max-width:600px){
-    :root{ --tile-size:56px; }
-    .letter{ font-size:20px; }
-  }
+  #overlayBlock { position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display:none; z-index:2900; }
+  .centerMessage { position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7); border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08); }
+  @media (max-width:600px){ :root{ --tile-size:56px; } .letter{ font-size:20px; } }
 </style>
 </head>
 <body>
-  <h1>Infinite Wordle</h1>
-
-  <div id="board" aria-hidden="false"></div>
-
-  <div id="controls">
-    <button id="newWordBtn" title="Reload page for new word">New Word</button>
-    <button id="giveUpBtn" title="Reveal and restart">Give Up</button>
+<h1>Infinite Wordle</h1>
+<div id="board" aria-hidden="false"></div>
+<div id="controls">
+  <button id="newWordBtn" title="Reload page for new word">New Word</button>
+  <button id="giveUpBtn" title="Reveal and restart">Give Up</button>
+</div>
+<div id="keyboard" aria-hidden="false"></div>
+<div id="overlayBlock" onclick="closeCodePopup()"></div>
+<div id="codePopup" role="dialog" aria-modal="true">
+  <div style="font-weight:bold">Enter Code</div>
+  <input id="codeInput" type="text" placeholder="Type your code here" />
+  <div class="codeRow">
+    <button id="codeSubmitBtn">Submit</button>
+    <button onclick="closeCodePopup()">Cancel</button>
   </div>
-
-  <div id="keyboard" aria-hidden="false"></div>
-
-  <!-- overlay + code popup -->
-  <div id="overlayBlock" onclick="closeCodePopup()"></div>
-  <div id="codePopup" role="dialog" aria-modal="true">
-    <div style="font-weight:bold">Enter Code</div>
-    <input id="codeInput" type="text" placeholder="Type your code here" />
-    <div class="codeRow">
-      <button id="codeSubmitBtn">Submit</button>
-      <button onclick="closeCodePopup()">Cancel</button>
-    </div>
-  </div>
-
+</div>
 <script>
-/* ===========================
-   Game data & state
-   =========================== */
-const WORDS = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY",
-               "IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY",
-               "QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON",
-               "YEAST","ZEBRA"];
+const WORDS = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY","IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY","QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON","YEAST","ZEBRA"];
 let solution = WORDS[Math.floor(Math.random()*WORDS.length)];
 let board, keyboard;
 let currentRow = 0;
 let currentCol = 0;
 let inputLocked = false;
+const SECRET_CODE = "JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 
-/* ---------------------------
-   Initialization
-   --------------------------- */
 window.addEventListener("load", () => {
   board = document.getElementById("board");
   keyboard = document.getElementById("keyboard");
-
-  buildBoard();
-  createKeyboard();
-
-  // keyboard physical
+  buildBoard(); createKeyboard();
   document.addEventListener("keydown", handleKey);
-  // detect secret keys
   document.addEventListener("keydown", detectSecretCode);
-
-  // buttons
   document.getElementById("newWordBtn").addEventListener("click", ()=>location.reload());
-  document.getElementById("giveUpBtn").addEventListener("click", () => {
-    alert("The word was: " + solution);
-    location.reload();
-  });
-
-  // code popup submit
+  document.getElementById("giveUpBtn").addEventListener("click", ()=>{ alert("The word was: "+solution); location.reload(); });
   document.getElementById("codeSubmitBtn").addEventListener("click", checkCode);
-
-  // gentle floating particles for ambience
   spawnAmbientParticles(40);
 });
 
-/* ---------------------------
-   Build board
-   --------------------------- */
 function buildBoard(){
-  board.innerHTML = "";
+  board.innerHTML="";
   for(let r=0;r<6;r++){
-    const row = document.createElement("div");
-    row.className = "row";
+    const row=document.createElement("div"); row.className="row";
     for(let c=0;c<5;c++){
-      const tile = document.createElement("div");
-      tile.className = "tile";
-      const inner = document.createElement("div");
-      inner.className = "inner";
-      const letter = document.createElement("div");
-      letter.className = "letter";
-      inner.appendChild(letter);
-      tile.appendChild(inner);
-      row.appendChild(tile);
+      const tile=document.createElement("div"); tile.className="tile";
+      const inner=document.createElement("div"); inner.className="inner";
+      const letter=document.createElement("div"); letter.className="letter";
+      inner.appendChild(letter); tile.appendChild(inner); row.appendChild(tile);
     }
     board.appendChild(row);
   }
 }
 
-/* ---------------------------
-   Keyboard UI
-   --------------------------- */
 function createKeyboard(){
-  keyboard.innerHTML = "";
-  const rows = ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
-  rows.forEach(letters => {
-    const rdiv = document.createElement("div");
-    rdiv.className = "kb-row";
-    for(const ch of letters){
-      const btn = document.createElement("button");
-      btn.textContent = ch;
-      btn.addEventListener("click", ()=>handleKey({key:ch}));
-      rdiv.appendChild(btn);
-    }
+  keyboard.innerHTML="";
+  ["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"].forEach(letters=>{
+    const rdiv=document.createElement("div"); rdiv.className="kb-row";
+    for(const ch of letters){ const btn=document.createElement("button"); btn.textContent=ch; btn.addEventListener("click", ()=>handleKey({key:ch})); rdiv.appendChild(btn);}
     keyboard.appendChild(rdiv);
   });
-
-  // Fourth row: Enter + Backspace
-  const control = document.createElement("div");
-  control.className = "kb-row";
-  const enterBtn = document.createElement("button");
-  enterBtn.className = "wide";
-  enterBtn.textContent = "Enter";
-  enterBtn.addEventListener("click", ()=>handleKey({key:"Enter"}));
-  const backBtn = document.createElement("button");
-  backBtn.className = "wide";
-  backBtn.textContent = "Backspace";
-  backBtn.addEventListener("click", ()=>handleKey({key:"Backspace"}));
-  control.appendChild(enterBtn);
-  control.appendChild(backBtn);
+  const control=document.createElement("div"); control.className="kb-row";
+  ["Enter","Backspace"].forEach(k=>{
+    const btn=document.createElement("button"); btn.textContent=k; btn.className="wide"; btn.addEventListener("click", ()=>handleKey({key:k})); control.appendChild(btn);
+  });
   keyboard.appendChild(control);
 }
 
-/* ---------------------------
-   Input handling
-   --------------------------- */
+function getTile(r,c){return board.children[r].children[c];}
+
 function handleKey(e){
   if(inputLocked) return;
-
-  // letter key
-  if(/^[a-zA-Z]$/.test(e.key) && currentCol < 5){
-    const tile = getTile(currentRow,currentCol);
-    const letterDiv = tile.querySelector(".letter");
-    letterDiv.textContent = e.key.toUpperCase();
-
-    // keypress pop: scale up briefly then revert (0.2s)
+  const key=e.key.toUpperCase();
+  if(/^[A-Z]$/.test(key)&&currentCol<5){
+    const tile=getTile(currentRow,currentCol);
+    tile.querySelector(".letter").textContent=key;
     tile.classList.add("keypress");
-    setTimeout(()=> tile.classList.remove("keypress"), 200);
-
+    setTimeout(()=>tile.classList.remove("keypress"),200);
     currentCol++;
-    return;
-  }
-
-  // backspace
-  if(e.key === "Backspace" || e.key === "Delete"){
-    if(currentCol > 0){
-      currentCol--;
-      const tile = getTile(currentRow,currentCol);
-      tile.querySelector(".letter").textContent = "";
-    }
-    return;
-  }
-
-  // enter
-  if(e.key === "Enter"){
-    if(currentCol === 5) submitRow();
-    return;
+  } else if(e.key==="Backspace"&&currentCol>0){
+    currentCol--;
+    getTile(currentRow,currentCol).querySelector(".letter").textContent="";
+  } else if(e.key==="Enter"&&currentCol===5){
+    submitRow();
   }
 }
 
-/* ---------------------------
-   Helpers for tiles
-   --------------------------- */
-function getTile(r,c){
-  return board.children[r].children[c];
-}
-
-/* ---------------------------
-   Submit a row & color logic
-   --------------------------- */
 function submitRow(){
-  let guess = "";
-  for(let c=0;c<5;c++){
-    guess += getTile(currentRow,c).querySelector(".letter").textContent;
-  }
-  if(guess.length < 5) return;
+  let guess=""; for(let c=0;c<5;c++){ guess+=getTile(currentRow,c).querySelector(".letter").textContent; }
+  if(guess.length<5) return;
+  inputLocked=true;
+  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
+  for(let i=0;i<5;i++){ if(guess[i]===solution[i]){ colors[i]="correct"; solutionLetters[i]=null; } }
+  for(let i=0;i<5;i++){ if(colors[i]!=="correct"){ let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;} } }
 
-  inputLocked = true;
-  const solutionLetters = solution.split("");
-  const colors = Array(5).fill('absent');
-
-  // first pass: correct
-  for(let i=0;i<5;i++){
-    if(guess[i] === solution[i]) {
-      colors[i] = 'correct';
-      solutionLetters[i] = null;
-    }
-  }
-
-  // second pass: present
-  for(let i=0;i<5;i++){
-    if(colors[i] === 'correct') continue;
-    const idx = solutionLetters.indexOf(guess[i]);
-    if(idx !== -1){
-      colors[i] = 'present';
-      solutionLetters[idx] = null;
-    }
-  }
-
-  // animate tiles sequentially and show glow while flipping
-  [...guess].forEach((ch, idx) => {
-    setTimeout(()=> {
-      const inner = getTile(currentRow, idx).querySelector(".inner");
-      const parentTile = getTile(currentRow, idx);
-
-      // give small pop on flip start
-      parentTile.classList.add("pop");
-
-      // add flipping to animate rotation
-      inner.classList.add("flipping");
-
-      // add glow based on color (we will remove glow's box-shadow inline as soon as flip finishes)
-      if(colors[idx] === 'correct') inner.classList.add("glow-correct");
-      else if(colors[idx] === 'present') inner.classList.add("glow-present");
-      else inner.classList.add("glow-absent");
-
-      // when flip ends:
-      setTimeout(()=> {
-        // set background color class (keeps color)
-        inner.classList.add(colors[idx] === 'correct' ? 'correct' : (colors[idx] === 'present' ? 'present' : 'absent'));
-
-        // remove rotation class
-        inner.classList.remove("flipping");
-
-        // stop glow immediately: override with inline style to remove box-shadow from CSS class
-        inner.style.boxShadow = "none";
-
-        // remove the glow-* class too to avoid future conflicts
-        inner.classList.remove("glow-correct","glow-present","glow-absent");
-
-        // remove pop after a short moment
-        setTimeout(()=> parentTile.classList.remove("pop"), 140);
-
-        // if last tile, continue game logic
-        if(idx === 4){
-          inputLocked = false;
-          if(guess === solution){
-            // epic victory
-            triggerVictorySequence();
+  [...guess].forEach((ch,idx)=>{
+    setTimeout(()=>{
+      const tile=getTile(currentRow,idx).querySelector(".inner");
+      tile.classList.add("flipping");
+      setTimeout(()=>{
+        tile.classList.add(colors[idx]);
+        tile.classList.add("glow-"+colors[idx]);
+        tile.classList.remove("flipping");
+        if(idx===4){
+          inputLocked=false;
+          // Victory
+          if(guess===solution){
+            // Show luck message
+            let luckMsg="";
+            if(currentRow<=1) luckMsg="You've got HELL a good luck!";
+            else if(currentRow===2) luckMsg="Your luck is crazy!";
+            else if(currentRow===3) luckMsg="You are GOOD!";
+            if(luckMsg) showMessage(luckMsg,1500);
+            setTimeout(()=>triggerVictorySequence(),1600);
           } else {
-            // 3 visual effects for a normal submitted row (pop, message, confetti)
-            // 1) pop animation already applied; 2) small center message; 3) confetti particles
-            showMessage("Guess submitted");
-            spawnConfettiForRow(currentRow);
-            // advance row if not finished
-            currentRow++;
-            currentCol = 0;
-            if(currentRow === 6){
-              // out of tries -> show final message and small effects
-              setTimeout(()=> {
-                showMessage("Out of tries! The word was: " + solution);
-                spawnConfettiAtCenter(24, "#ffcc00");
-              }, 200);
-            }
+            currentRow++; currentCol=0;
+            showMessage("Guess submitted!",800);
+            spawnConfettiForRow(currentRow-1);
+            if(currentRow===6) setTimeout(()=>{alert("Out of tries! Word was "+solution); location.reload();},300);
           }
         }
-      }, 380); // flip duration slightly longer than CSS transition so it looks right
-    }, idx * 420); // stagger timing
+      },300);
+    },idx*400);
   });
 }
 
-/* ---------------------------
-   Small support effects
-   --------------------------- */
-function showMessage(text, ms=1600){
-  const el = document.createElement("div");
-  el.className = "centerMessage";
-  el.textContent = text;
-  document.body.appendChild(el);
-  setTimeout(()=> el.remove(), ms);
+// Fancy messages
+function showMessage(msg,duration=1200){
+  const div=document.createElement("div"); div.className="centerMessage"; div.textContent=msg;
+  document.body.appendChild(div); setTimeout(()=>div.remove(),duration);
 }
 
-/* spawn confetti particles positioned around the row */
-function spawnConfettiForRow(rowIndex){
-  const row = board.children[rowIndex];
-  const rect = row.getBoundingClientRect();
-  const count = 28;
-  for(let i=0;i<count;i++){
-    const p = document.createElement("div");
-    p.className = "particle";
-    p.style.width = (4 + Math.random()*6) + "px";
-    p.style.height = p.style.width;
-    p.style.left = (rect.left + Math.random()*rect.width) + "px";
-    p.style.top = (rect.top + Math.random()*rect.height) + "px";
-    p.style.background = randomChoice(["#ff5c5c","#ffd24d","#6fffb0","#8ec5ff","#ff8ad6"]);
-    p.style.transform = `translate(0,0)`;
-    p.style.animationDuration = (700 + Math.random()*900)+"ms";
-    document.body.appendChild(p);
-    setTimeout(()=> p.remove(), 1000 + Math.random()*400);
-  }
-}
-
-/* spawn confetti centered on screen (for end-of-game) */
-function spawnConfettiAtCenter(count=40, color="#6fffb0"){
-  const w = window.innerWidth, h = window.innerHeight;
-  for(let i=0;i<count;i++){
-    const p = document.createElement("div");
-    p.className = "particle";
-    p.style.width = (6 + Math.random()*8)+"px";
-    p.style.height = p.style.width;
-    p.style.left = (w/2 + (Math.random()-0.5)*200) + "px";
-    p.style.top = (h/2 + (Math.random()-0.5)*80) + "px";
-    p.style.background = color;
-    p.style.animationDuration = (600 + Math.random()*900)+"ms";
-    document.body.appendChild(p);
-    setTimeout(()=> p.remove(), 1200 + Math.random()*400);
-  }
-}
-
-/* ambient floating tiny particles */
-function spawnAmbientParticles(n=30){
-  for(let i=0;i<n;i++){
-    const p = document.createElement("div");
-    p.className = "particle";
-    p.style.width = (2 + Math.random()*4)+"px";
-    p.style.height = p.style.width;
-    p.style.left = Math.random()*window.innerWidth + "px";
-    p.style.top = Math.random()*window.innerHeight + "px";
-    p.style.background = "rgba(255,255,255,0.06)";
-    p.style.animationDuration = (4000 + Math.random()*6000) + "ms";
-    document.body.appendChild(p);
-    setTimeout(()=> p.remove(), 7000 + Math.random()*3000);
-  }
-}
-
-/* utility */
-function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-/* ---------------------------
-   Victory sequence: shake, shatter, green explosion, reload
-   --------------------------- */
+// Victory sequence
 function triggerVictorySequence(){
-  // Prevent any input during the epic sequence
-  inputLocked = true;
-
-  // 1) center message
-  showMessage("🎉 You guessed it!", 2000);
-
-  // 2) shake screen
-  document.documentElement.classList.add("shakeBody");
-  setTimeout(()=> document.documentElement.classList.remove("shakeBody"), 1000);
-
-  // 3) shatter tiles and keyboard: clone each tile and each keyboard button, position clones absolutely, hide originals
-  const elementsToShatter = [
-    ...Array.from(document.querySelectorAll(".tile")),
-    ...Array.from(document.querySelectorAll("#keyboard button")),
-    document.getElementById("newWordBtn"),
-    document.getElementById("giveUpBtn"),
-    document.querySelector("h1")
-  ];
-
-  const clones = [];
-  elementsToShatter.forEach(el => {
-    if(!el) return;
-    const rect = el.getBoundingClientRect();
-    // create a visual clone container
-    const clone = el.cloneNode(true);
-    // style the clone for absolute positioning
-    clone.style.position = "absolute";
-    clone.style.left = rect.left + "px";
-    clone.style.top = rect.top + "px";
-    clone.style.width = rect.width + "px";
-    clone.style.height = rect.height + "px";
-    clone.style.margin = "0";
-    clone.style.zIndex = 5000;
-    clone.classList.add("fallPiece");
-    // slightly randomize rotation origin
-    const angle = (Math.random()-0.5)*40;
-    clone.style.transform = `rotate(${angle}deg)`;
-    document.body.appendChild(clone);
-    clones.push(clone);
-    // hide original
-    el.style.visibility = "hidden";
-  });
-
-  // 4) green particle explosion across screen
-  setTimeout(()=> {
-    const total = 120;
-    for(let i=0;i<total;i++){
-      const p = document.createElement("div");
-      p.className = "particle";
-      const size = 4 + Math.random()*7;
-      p.style.width = size + "px";
-      p.style.height = size + "px";
-      p.style.left = (Math.random()*window.innerWidth) + "px";
-      p.style.top = (Math.random()*window.innerHeight) + "px";
-      p.style.background = `rgba(${Math.floor(30+Math.random()*40)}, ${200+Math.floor(Math.random()*55)}, ${30+Math.floor(Math.random()*40)}, ${0.9 - Math.random()*0.2})`;
-      p.style.borderRadius = (Math.random()*50) + "%";
-      p.style.animationDuration = (800 + Math.random()*900) + "ms";
-      document.body.appendChild(p);
-      setTimeout(()=> p.remove(), 1600);
-    }
-  }, 200);
-
-  // After the fall animation completes, remove clones and reload page
-  // fallDown animation lasts ~1600ms, we'll give a slight buffer
-  setTimeout(()=>{
-    clones.forEach(c => c.remove());
-    // un-hide originals for a moment (or we can just reload)
-    // reload page to start fresh
-    location.reload();
-  }, 2000);
+  document.body.classList.add("shakeBody");
+  shatterBoard();
+  spawnGreenExplosion(80);
+  setTimeout(()=>location.reload(),1800);
 }
 
-/* ---------------------------
-   Secret code popup logic (Ctrl+Shift+A)
-   --------------------------- */
-const SECRET_CODE = "JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
+function shatterBoard(){
+  const pieces=[]; board.querySelectorAll(".tile").forEach(t=>{
+    const rect=t.getBoundingClientRect();
+    const clone=t.cloneNode(true); clone.classList.add("fallPiece"); clone.style.left=rect.left+"px"; clone.style.top=rect.top+"px"; clone.style.width=rect.width+"px"; clone.style.height=rect.height+"px";
+    document.body.appendChild(clone); pieces.push(clone); t.style.visibility="hidden";
+  });
+  setTimeout(()=>pieces.forEach(p=>p.remove()),1800);
+}
 
-function detectSecretCode(e){
-  // ctrl + shift + A
-  if(e.ctrlKey && e.shiftKey && e.code === "KeyA"){
-    openCodePopup();
+function spawnGreenExplosion(count){
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div"); p.className="particle"; 
+    const size=Math.random()*14+6; p.style.width=size+"px"; p.style.height=size+"px"; 
+    p.style.background="rgba(46,255,87,"+(Math.random()*0.9+0.4)+")"; 
+    p.style.left=(window.innerWidth/2)+"px"; p.style.top=(window.innerHeight/2)+"px"; 
+    document.body.appendChild(p);
+    const animTime=Math.random()*900+700;
+    p.animate([{transform:`translate(${(Math.random()-0.5)*600}px,${-Math.random()*600}px) scale(0.6)`, opacity:0}], {duration:animTime, easing:"cubic-bezier(.2,.7,.3,1)"});
+    setTimeout(()=>p.remove(),animTime);
   }
 }
 
-function openCodePopup(){
-  document.getElementById("overlayBlock").style.display = "block";
-  const pop = document.getElementById("codePopup");
-  pop.style.display = "flex";
-  document.getElementById("codeInput").focus();
+// Row confetti
+function spawnConfettiForRow(row){
+  for(let i=0;i<6;i++){
+    const p=document.createElement("div"); p.className="particle"; 
+    const size=Math.random()*10+6; p.style.width=size+"px"; p.style.height=size+"px"; 
+    p.style.background=`hsl(${Math.random()*360},80%,60%)`; 
+    const tile=getTile(row,i); const rect=tile.getBoundingClientRect();
+    p.style.left=rect.left+(rect.width/2)+"px"; p.style.top=rect.top+(rect.height/2)+"px"; 
+    document.body.appendChild(p);
+    const animTime=1200; p.animate([{transform:`translate(${(Math.random()-0.5)*80}px,${-Math.random()*120}px) scale(0.5)`, opacity:0}], {duration:animTime, easing:"cubic-bezier(.2,.7,.3,1)"}); 
+    setTimeout(()=>p.remove(),animTime);
+  }
+}
+
+// Ambient greenish particles
+function spawnAmbientParticles(num){
+  for(let i=0;i<num;i++){
+    const p=document.createElement("div"); p.className="particle"; 
+    const size=Math.random()*6+3; p.style.width=size+"px"; p.style.height=size+"px"; 
+    p.style.background="rgba(255,255,255,"+Math.random()*0.2+")"; 
+    p.style.left=Math.random()*window.innerWidth+"px"; p.style.top=Math.random()*window.innerHeight+"px"; 
+    document.body.appendChild(p);
+    const animTime=Math.random()*4000+3000;
+    p.animate([{transform:`translate(${(Math.random()-0.5)*200}px,${(Math.random()-0.5)*200}px) scale(0.5)`, opacity:0}], {duration:animTime, easing:"ease-out"}); 
+    setTimeout(()=>p.remove(),animTime);
+  }
+}
+
+// Secret Code
+function detectSecretCode(e){
+  if(e.ctrlKey && e.shiftKey && e.key.toUpperCase()==="A") showCodePopup();
+}
+
+function showCodePopup(){
+  document.getElementById("overlayBlock").style.display="block";
+  document.getElementById("codePopup").style.display="flex";
+  document.getElementById("codeInput").value="";
 }
 
 function closeCodePopup(){
-  document.getElementById("codePopup").style.display = "none";
-  document.getElementById("overlayBlock").style.display = "none";
-  document.getElementById("codeInput").value = "";
+  document.getElementById("overlayBlock").style.display="none";
+  document.getElementById("codePopup").style.display="none";
 }
 
 function checkCode(){
-  const val = document.getElementById("codeInput").value;
-  if(val === SECRET_CODE){
-    // show confirm with the answer; when user clicks OK (yes), close popup
-    const proceed = confirm("Correct! The word is: " + solution + "\n\nClick OK to close.");
-    // after clicking OK or Cancel we close popup per your request
-    closeCodePopup();
-  } else {
-    alert("Code entered incorrect, you suck");
-    closeCodePopup();
-  }
+  const val=document.getElementById("codeInput").value;
+  if(val===SECRET_CODE){ alert("The word is: "+solution); closeCodePopup(); }
+  else { if(confirm("Code entered incorrect, you suck")) closeCodePopup(); }
 }
-
-/* ===========================
-   end of file
-   =========================== */
 </script>
 </body>
 </html>
-
