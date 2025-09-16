@@ -1,248 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Wordle</title>
-  <style>
-    body {
-      font-family: 'Arial Black', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    h1 {
-      margin: 20px;
-      font-size: 2em;
-      letter-spacing: 3px;
-      text-shadow: 2px 2px 6px black;
-    }
-    #board {
-      display: grid;
-      grid-template-rows: repeat(6, 1fr);
-      gap: 8px;
-    }
-    .row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-    }
-    .tile {
-      width: 60px;
-      height: 60px;
-      background: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 28px;
-      font-weight: bold;
-      border-radius: 8px;
-      perspective: 1000px;
-    }
-    .inner {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #333;
-      border-radius: 8px;
-      transform-style: preserve-3d;
-      transition: transform 0.6s;
-    }
-    .inner.correct { background: #6aaa64; }
-    .inner.present { background: #c9b458; }
-    .inner.absent  { background: #787c7e; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinite Wordle</title>
+<style>
+  body {
+    font-family: 'Arial Black', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+  }
 
-    .flipping { transform: rotateX(180deg); }
-    .letter { backface-visibility: hidden; transform: rotateX(0deg); }
+  h1 {
+    margin: 20px;
+    font-size: 2.2em;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 10px black;
+  }
 
-    #controls { margin-top: 20px; }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      background: #444;
-      color: white;
-      transition: background 0.3s;
-    }
-    button:hover { background: #666; }
+  #board {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 10px;
+    perspective: 1000px;
+  }
 
-    /* Touchscreen keyboard */
-    #keyboard {
-      margin-top: 20px;
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      max-width: 620px;
-    }
-    #keyboard button {
-      padding: 10px 0;
-      font-size: 18px;
-      border-radius: 5px;
-    }
-    #keyboard .wide { grid-column: span 2; }
-  </style>
+  .row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .tile {
+    width: 65px;
+    height: 65px;
+    background: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    font-weight: bold;
+    border-radius: 10px;
+    perspective: 1000px;
+    transition: transform 0.3s;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+
+  .inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #333;
+    border-radius: 10px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s, background 0.3s, box-shadow 0.3s;
+  }
+
+  .inner.correct { 
+    background: #6aaa64; 
+    box-shadow: 0 0 15px #6aaa64;
+  }
+  .inner.present { 
+    background: #c9b458; 
+    box-shadow: 0 0 15px #c9b458;
+  }
+  .inner.absent  { 
+    background: #787c7e; 
+    box-shadow: 0 0 15px #787c7e;
+  }
+
+  .flipping { transform: rotateX(180deg); }
+  .letter { backface-visibility: hidden; transform: rotateX(0deg); }
+
+  #controls {
+    margin-top: 20px;
+  }
+
+  button {
+    margin: 5px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    background: #444;
+    color: white;
+    transition: background 0.3s, transform 0.2s;
+  }
+  button:hover { 
+    background: #666; 
+    transform: scale(1.1);
+  }
+
+  /* Keyboard */
+  #keyboard {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .kb-row button {
+    padding: 12px 10px;
+    font-size: 18px;
+    border-radius: 6px;
+    background: #555;
+    color: white;
+    transition: all 0.2s;
+  }
+
+  .kb-row button:hover {
+    background: #888;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #fff;
+  }
+
+  .kb-row button.wide {
+    flex: 1 0 70px;
+  }
+
+  /* Particle effect */
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    animation: float 5s linear infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); opacity: 1; }
+    50% { transform: translateY(-200px) rotate(180deg); opacity: 0.5; }
+    100% { transform: translateY(-400px) rotate(360deg); opacity: 0; }
+  }
+</style>
 </head>
 <body>
-  <h1>Infinite Wordle</h1>
-  <div id="board"></div>
-  <div id="controls">
-    <button onclick="newGame()">New Word</button>
-  </div>
+<h1>Infinite Wordle</h1>
+<div id="board"></div>
+<div id="controls">
+  <button onclick="newGame()">New Word</button>
+</div>
+<div id="keyboard"></div>
 
-  <div id="keyboard"></div>
+<script>
+const words = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY",
+               "IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY",
+               "QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON",
+               "YEAST","ZEBRA"];
+let solution = "";
+let currentRow = 0;
+let currentCol = 0;
+let board;
+let inputLocked = false;
 
-  <script>
-    const words = ["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY",
-                   "IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY",
-                   "QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON",
-                   "YEAST","ZEBRA"];
-    let solution = "";
-    let currentRow = 0;
-    let currentCol = 0;
-    let board;
-    let inputLocked = false;
+function newGame() {
+  solution = words[Math.floor(Math.random() * words.length)];
+  board.innerHTML = "";
+  currentRow = 0;
+  currentCol = 0;
 
-    function newGame() {
-      solution = words[Math.floor(Math.random() * words.length)];
-      board.innerHTML = "";
-      currentRow = 0;
-      currentCol = 0;
-      for (let r = 0; r < 6; r++) {
-        let row = document.createElement("div");
-        row.className = "row";
-        for (let c = 0; c < 5; c++) {
-          let tile = document.createElement("div");
-          tile.className = "tile";
-          let inner = document.createElement("div");
-          inner.className = "inner";
-          let letter = document.createElement("div");
-          letter.className = "letter";
-          inner.appendChild(letter);
-          tile.appendChild(inner);
-          row.appendChild(tile);
+  for (let r = 0; r < 6; r++) {
+    let row = document.createElement("div");
+    row.className = "row";
+    for (let c = 0; c < 5; c++) {
+      let tile = document.createElement("div");
+      tile.className = "tile";
+      let inner = document.createElement("div");
+      inner.className = "inner";
+      let letter = document.createElement("div");
+      letter.className = "letter";
+      inner.appendChild(letter);
+      tile.appendChild(inner);
+      row.appendChild(tile);
+    }
+    board.appendChild(row);
+  }
+}
+
+// Keyboard handling
+function handleKey(e) {
+  if (inputLocked) return;
+  if (/^[a-zA-Z]$/.test(e.key) && currentCol < 5) {
+    getTile(currentRow, currentCol).querySelector(".letter").textContent = e.key.toUpperCase();
+    currentCol++;
+  } else if (e.key === "Backspace" && currentCol > 0) {
+    currentCol--;
+    getTile(currentRow, currentCol).querySelector(".letter").textContent = "";
+  } else if (e.key === "Enter" && currentCol === 5) {
+    submitRow();
+  }
+}
+
+function getTile(r, c) {
+  return board.children[r].children[c];
+}
+
+function submitRow() {
+  let guess = "";
+  for (let c = 0; c < 5; c++) {
+    guess += getTile(currentRow, c).querySelector(".letter").textContent;
+  }
+  if (guess.length < 5) return;
+
+  inputLocked = true;
+  let solutionLetters = solution.split('');
+  let colors = Array(5).fill('absent');
+
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === solution[i]) {
+      colors[i] = 'correct';
+      solutionLetters[i] = null;
+    }
+  }
+  for (let i = 0; i < 5; i++) {
+    if (colors[i] === 'correct') continue;
+    let idx = solutionLetters.indexOf(guess[i]);
+    if (idx !== -1) {
+      colors[i] = 'present';
+      solutionLetters[idx] = null;
+    }
+  }
+
+  [...guess].forEach((ch, idx) => {
+    setTimeout(() => {
+      let tile = getTile(currentRow, idx).querySelector(".inner");
+      tile.classList.add("flipping");
+      setTimeout(() => {
+        tile.classList.add(colors[idx]);
+        tile.classList.remove("flipping");
+        if (idx === 4) {
+          inputLocked = false;
+          if (guess === solution) {
+            showMessage("🎉 You guessed it!");
+          } else {
+            currentRow++;
+            currentCol = 0;
+            if (currentRow === 6) showMessage("❌ Out of tries! Word was " + solution);
+          }
         }
-        board.appendChild(row);
-      }
+      }, 300);
+    }, idx * 400);
+  });
+}
+
+function createKeyboard() {
+  const keyboard = document.getElementById("keyboard");
+  const rows = [
+    "QWERTYUIOP",
+    "ASDFGHJKL",
+    "ZXCVBNM"
+  ];
+
+  rows.forEach((letters, rIndex) => {
+    let rowDiv = document.createElement("div");
+    rowDiv.className = "kb-row";
+    for (let ch of letters) {
+      let btn = document.createElement("button");
+      btn.textContent = ch;
+      btn.onclick = () => handleKey({key: ch});
+      rowDiv.appendChild(btn);
     }
 
-    function handleKey(e) {
-      if (inputLocked) return;
-      if (/^[a-zA-Z]$/.test(e.key) && currentCol < 5) {
-        getTile(currentRow, currentCol).querySelector(".letter").textContent = e.key.toUpperCase();
-        currentCol++;
-      } else if (e.key === "Backspace" && currentCol > 0) {
-        currentCol--;
-        getTile(currentRow, currentCol).querySelector(".letter").textContent = "";
-      } else if (e.key === "Enter" && currentCol === 5) {
-        submitRow();
-      }
+    if (rIndex === 1) {
+      let enterBtn = document.createElement("button");
+      enterBtn.textContent = "Enter";
+      enterBtn.className = "wide";
+      enterBtn.onclick = () => handleKey({key: "Enter"});
+      rowDiv.appendChild(enterBtn);
+
+      let backBtn = document.createElement("button");
+      backBtn.textContent = "Backspace";
+      backBtn.className = "wide";
+      backBtn.onclick = () => handleKey({key: "Backspace"});
+      rowDiv.appendChild(backBtn);
     }
 
-    function getTile(r, c) {
-      return board.children[r].children[c];
-    }
+    keyboard.appendChild(rowDiv);
+  });
+}
 
-    function submitRow() {
-      let guess = "";
-      for (let c = 0; c < 5; c++) {
-        guess += getTile(currentRow, c).querySelector(".letter").textContent;
-      }
-      if (guess.length < 5) return;
+// Fancy message
+function showMessage(msg) {
+  let div = document.createElement("div");
+  div.textContent = msg;
+  div.style.position = "fixed";
+  div.style.top = "50%";
+  div.style.left = "50%";
+  div.style.transform = "translate(-50%, -50%)";
+  div.style.background = "rgba(0,0,0,0.8)";
+  div.style.padding = "20px 40px";
+  div.style.borderRadius = "15px";
+  div.style.fontSize = "24px";
+  div.style.textAlign = "center";
+  div.style.zIndex = "1000";
+  div.style.boxShadow = "0 0 20px white";
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2500);
+}
 
-      inputLocked = true;
+// Particle background
+for(let i=0;i<40;i++){
+  let p=document.createElement("div");
+  p.className="particle";
+  p.style.left=Math.random()*window.innerWidth+"px";
+  p.style.top=Math.random()*window.innerHeight+"px";
+  p.style.animationDuration=(3+Math.random()*5)+"s";
+  p.style.width=3+Math.random()*4+"px";
+  p.style.height=3+Math.random()*4+"px";
+  document.body.appendChild(p);
+}
 
-      // Fix for correct yellow/green logic
-      let solutionLetters = solution.split('');
-      let colors = Array(5).fill('absent');
-
-      // First pass: correct letters
-      for (let i = 0; i < 5; i++) {
-        if (guess[i] === solution[i]) {
-          colors[i] = 'correct';
-          solutionLetters[i] = null;
-        }
-      }
-
-      // Second pass: present letters
-      for (let i = 0; i < 5; i++) {
-        if (colors[i] === 'correct') continue;
-        let idx = solutionLetters.indexOf(guess[i]);
-        if (idx !== -1) {
-          colors[i] = 'present';
-          solutionLetters[idx] = null;
-        }
-      }
-
-      // Animate tiles
-      [...guess].forEach((ch, idx) => {
-        setTimeout(() => {
-          let tile = getTile(currentRow, idx).querySelector(".inner");
-          tile.classList.add("flipping");
-          setTimeout(() => {
-            tile.classList.add(colors[idx]);
-            tile.classList.remove("flipping");
-            if (idx === 4) {
-              inputLocked = false;
-              if (guess === solution) {
-                alert("You guessed it!");
-              } else {
-                currentRow++;
-                currentCol = 0;
-                if (currentRow === 6) alert("Out of tries! Word was " + solution);
-              }
-            }
-          }, 300);
-        }, idx * 400);
-      });
-    }
-
-    // Touchscreen keyboard
-    function createKeyboard() {
-      const keyboard = document.getElementById("keyboard");
-      const rows = [
-        "QWERTYUIOP",
-        "ASDFGHJKL",
-        "ZXCVBNM"
-      ];
-
-      rows.forEach((row, rowIndex) => {
-        for (let ch of row) {
-          let btn = document.createElement("button");
-          btn.textContent = ch;
-          btn.onclick = () => handleKey({key: ch});
-          keyboard.appendChild(btn);
-        }
-        if (rowIndex === 1) {
-          let enterBtn = document.createElement("button");
-          enterBtn.textContent = "Enter";
-          enterBtn.className = "wide";
-          enterBtn.onclick = () => handleKey({key: "Enter"});
-          keyboard.appendChild(enterBtn);
-
-          let backBtn = document.createElement("button");
-          backBtn.textContent = "Backspace";
-          backBtn.className = "wide";
-          backBtn.onclick = () => handleKey({key: "Backspace"});
-          keyboard.appendChild(backBtn);
-        }
-      });
-    }
-
-    window.onload = () => {
-      board = document.getElementById("board");
-      newGame();
-      createKeyboard();
-      document.addEventListener("keydown", handleKey);
-    };
-  </script>
+window.onload = () => {
+  board = document.getElementById("board");
+  newGame();
+  createKeyboard();
+  document.addEventListener("keydown", handleKey);
+};
+</script>
 </body>
 </html>
