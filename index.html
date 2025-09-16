@@ -14,17 +14,19 @@
     min-height: 100vh;
     color: white;
     overflow-x: hidden;
-    animation: bgcycle 10s infinite linear;
+    /* Smooth gradient animation */
     background: linear-gradient(135deg, #008B8B, #4B0082);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
     transition: background 1s;
   }
 
-  @keyframes bgcycle {
-    0% { background: linear-gradient(135deg, #008B8B, #4B0082); }
-    25% { background: linear-gradient(135deg, #4B0082, #00FFFF); }
-    50% { background: linear-gradient(135deg, #00FFFF, #4B0082); }
-    75% { background: linear-gradient(135deg, #4B0082, #008B8B); }
-    100% { background: linear-gradient(135deg, #008B8B, #4B0082); }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 50% 50%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
   h1 {
@@ -185,10 +187,6 @@ let currentCol = 0;
 let board;
 let inputLocked = false;
 
-function newGame() {
-  location.reload(); // simply reload page
-}
-
 function giveUp() {
   alert("The word was: " + solution);
   location.reload();
@@ -313,7 +311,6 @@ function submitRow(){
       setTimeout(()=>{
         tile.classList.add(colors[idx]);
         tile.classList.remove("flipping");
-        // Remove glow and pop immediately
         setTimeout(()=>{
           tile.style.boxShadow="";
           parent.classList.remove("pop");
