@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Infinite Wordle — Super Fancy</title>
+<title>Infinite Wordle</title>
 <style>
 :root{--tile-size:70px;}
 html,body{height:100%;margin:0;}
@@ -74,7 +74,7 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
   </div>
 </div>
 <script>
-const WORDS=["APPLE","BRAIN","CHAIR","DELTA","EARTH","FAITH","GHOST","HONEY","IVORY","JOKER","KNIFE","LEMON","MONEY","NORTH","OPERA","PARTY","QUEEN","RIVER","SUGAR","TIGER","ULTRA","VIRUS","WATER","XENON","YEAST","ZEBRA"];
+const WORDS=["APPLE","BRAIN","CHAIR","INDEX","EARTH","FAITH","GHOST","HONEY","LEAVE","JOKER","KNIFE","STAND","MONEY","NORTH","ANGRY","PARTY","QUEEN","RIVER","ARGER","TIGER","ULTRA","VIRUS","WATER","OCEAN","SLOPE","GLOBE", "WORST", "GUESS", "MODEL", "CLOTH", SHIRT", "PANTS", "GLASS", "SOCKS", "DEVIL", "WRATH"];
 let solution=WORDS[Math.floor(Math.random()*WORDS.length)];
 let board, keyboard;
 let currentRow=0, currentCol=0, inputLocked=false;
@@ -238,3 +238,4 @@ function checkCode(){const val=document.getElementById("codeInput").value; if(va
 </script>
 </body>
 </html>
+
