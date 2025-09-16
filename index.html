@@ -47,8 +47,10 @@ export default function WordGame() {
 
   const getBoxColor = (letter, index, word) => {
     if (!word) return "bg-gray-200 border-gray-300";
-    if (TARGET_WORD[index] === letter) return "bg-green-500 text-white shadow-lg shadow-green-400";
-    if (TARGET_WORD.includes(letter)) return "bg-yellow-400 text-white shadow-lg shadow-yellow-300";
+    if (TARGET_WORD[index] === letter)
+      return "bg-green-500 text-white shadow-lg shadow-green-400";
+    if (TARGET_WORD.includes(letter))
+      return "bg-yellow-400 text-white shadow-lg shadow-yellow-300";
     return "bg-gray-500 text-white";
   };
 
@@ -66,9 +68,9 @@ export default function WordGame() {
   };
 
   const keyboardRows = [
-    ["Q","W","E","R","T","Y","U","I","O","P"],
-    ["A","S","D","F","G","H","J","K","L"],
-    ["ENTER","Z","X","C","V","B","N","M","⌫"]
+    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+    ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+    ["ENTER", "Z", "X", "C", "V", "B", "N", "M", "⌫"],
   ];
 
   return (
@@ -86,20 +88,25 @@ export default function WordGame() {
       {/* Word Grid */}
       <div className="grid gap-2 mb-6">
         {[...Array(MAX_GUESSES)].map((_, row) => {
-          const word = guesses[row] || (row === guesses.length ? currentGuess : "");
+          const word =
+            guesses[row] || (row === guesses.length ? currentGuess : "");
           return (
-            <div key={row} className="flex gap-2">
+            <div key={row} className="flex gap-2 justify-center">
               {[...Array(WORD_LENGTH)].map((_, col) => {
                 const letter = word[col] || "";
                 const isSubmitted = row < guesses.length;
                 return (
                   <motion.div
                     key={col}
-                    className={`w-14 h-14 flex items-center justify-center rounded-xl font-bold text-2xl border-2 ${getBoxColor(letter, col, isSubmitted ? word : null)}`}
+                    className={`w-14 h-14 flex items-center justify-center rounded-xl font-bold text-2xl border-2 ${getBoxColor(
+                      letter,
+                      col,
+                      isSubmitted ? word : null
+                    )}`}
                     initial={false}
                     animate={{
                       rotateX: isSubmitted ? [0, 90, 0] : 0,
-                      scale: letter ? [1, 1.1, 1] : 1
+                      scale: letter ? [1, 1.1, 1] : 1,
                     }}
                     transition={{ duration: 0.6 }}
                   >
@@ -117,12 +124,11 @@ export default function WordGame() {
         {keyboardRows.map((row, rIdx) => (
           <div key={rIdx} className="flex gap-1 justify-center">
             {row.map((key) => (
-              <motion.div
-                key={key}
-                whileTap={{ scale: 0.85 }}
-              >
+              <motion.div key={key} whileTap={{ scale: 0.85 }}>
                 <Button
-                  className={`px-3 py-2 rounded-md text-lg font-semibold ${getKeyColor(key)} transition-all duration-300`}
+                  className={`px-3 py-2 rounded-md text-lg font-semibold ${getKeyColor(
+                    key
+                  )} transition-all duration-300 hover:brightness-110 active:scale-95`}
                   onClick={() => {
                     if (key === "ENTER") submitGuess();
                     else if (key === "⌫") deleteLetter();
