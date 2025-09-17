@@ -74,14 +74,15 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
   </div>
 </div>
 <script>
-const WORDS=["apple","grape","table","chair","water","light","house","green","black","white","bread","plant","glass","stone","music","dance","happy","smile","laugh","story","piano","train","plane","truck","sheep","goose","tiger","zebra","horse","mouse","sleep","dream","cloud","rainy","storm","windy","snowy","sunny","beach","ocean","river","earth","world","space","stars","moons","rocks","trees","grass","field","books","penny","candy","honey","sugar","lemon","peach","berry","melon","mango","shoes","socks","shirt","pants","dress","skirt","jelly","salad","pizza","bread","spoon","forks","plate","knife","couch","rugby","bench","cabin","clock","watch","paper","chalk","paint","brush","draws","color","smell","taste","touch","sight","sound","north","south","above","below","front","after","first","other","small","large","round","short","longs","quick","light","darky","night","early","later","begin","start","again","never","often","happy","sadly","angry","funny","tired","sleep","dream","games","plays","sport","swims","runsy","jumps","climb","walks","rides","drive","bikes","boats","ships","train","plane","truck","carts","money","coins","store","shops","malls","parks","yards","grass","trees","woods","bushy","leafy","roots","fruit","seeds","stems","petal","brown","black","white","green","bluey","redly","pinky","yellow","drink","eater","taste","smell","touch","sound","sight","brain","heart","blood","lungs","tooth","mouth","hands","feets","heads","faces","smily","angry","sadly","funny","happy","jolly","cheer","laugh","silly","crazy","quiet","loudy","early","later","first","lasts","begin","start","again","never","often","other"]
+const WORDS=[
+"apple","grape","table","chair","water","light","house","green","black","white","bread","plant","glass","stone","music","dance","happy","smile","laugh","story","piano","train","plane","truck","sheep","goose","tiger","zebra","horse","mouse","sleep","dream","cloud","storm","sunny","beach","ocean","river","earth","world","space","stars","trees","grass","field","books","penny","candy","honey","sugar","lemon","peach","berry","melon","mango","shoes","socks","shirt","pants","dress","skirt","jelly","salad","pizza","spoon","knife","couch","bench","cabin","clock","watch","paper","chalk","paint","brush","color","smell","taste","touch","sight","sound","north","south","above","below","front","after","first","other","small","large","round","short","quick","night","early","later","begin","start","again","never","often","sadly","angry","funny","tired","games","plays","sport","climb","walks","rides","drive","boats","money","coins","store","shops","yards","bushy","leafy","fruit","petal","brown","bluey","pinky","yellow","drink","brain","heart","blood","lungs","tooth","mouth","hands","heads","faces","jolly","cheer","silly","crazy","quiet"
 ];
 let solution=WORDS[Math.floor(Math.random()*WORDS.length)];
 let board, keyboard;
 let currentRow=0, currentCol=0, inputLocked=false;
 const SECRET_CODE="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 
-// ✅ FIX: Reset function instead of reloading page
+// ✅ Reset function
 function resetGame() {
   solution = WORDS[Math.floor(Math.random() * WORDS.length)];
   currentRow = 0;
@@ -189,7 +190,6 @@ function triggerVictorySequence(){
   spawnConfettiRain(150,0,0,window.innerWidth);
   spawnFloatingLetters(30,0,0,window.innerWidth,window.innerHeight);
   spawnSparkParticles(80,window.innerWidth/2,window.innerHeight/2);
-  // ✅ FIX: Use resetGame instead of reload
   setTimeout(resetGame,2400);
 }
 
@@ -251,6 +251,3 @@ function checkCode(){const val=document.getElementById("codeInput").value; if(va
 </script>
 </body>
 </html>
-
-
-
