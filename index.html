@@ -80,21 +80,13 @@ let board, keyboard;
 let currentRow=0, currentCol=0, inputLocked=false;
 const SECRET_CODE="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 
-function resetGame() {
-  solution = WORDS[Math.floor(Math.random() * WORDS.length)];
-  currentRow = 0;
-  currentCol = 0;
-  inputLocked = false;
-  buildBoard();
-}
-
 window.addEventListener("load",()=>{
   board=document.getElementById("board"); keyboard=document.getElementById("keyboard");
   buildBoard(); createKeyboard();
   document.addEventListener("keydown",handleKey);
   document.addEventListener("keydown",detectSecretCode);
 
-  document.getElementById("newWordBtn").onclick=resetGame;
+  document.getElementById("newWordBtn").onclick = () => location.reload();
   document.getElementById("giveUpBtn").onclick=()=>{alert("Word was: "+solution); resetGame();}
   document.getElementById("codeSubmitBtn").onclick=checkCode;
 });
@@ -131,6 +123,8 @@ function createKeyboard(){
   keyboard.appendChild(lastRow);
 }
 
+function getTile(r,c){return board.children[r].children[c];}
+
 function handleKey(e){
   if(inputLocked) return;
   if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
@@ -145,15 +139,8 @@ function handleKey(e){
   }
 }
 
-function getTile(r,c){return board.children[r].children[c];}
-
-// ✅ FIXED submitRow
 function submitRow(){
-  let guess=""; 
-  for(let c=0;c<5;c++){ 
-    const ch=getTile(currentRow,c).querySelector(".letter").textContent;
-    guess+=ch?ch.toLowerCase():"";
-  }
+  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
   if(guess.length<5) return; inputLocked=true;
   let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
   for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
@@ -230,50 +217,25 @@ function spawnFloatingLetters(count,x,y,w,h){
 function spawnSparkParticles(count,x,y){
   for(let i=0;i<count;i++){
     const p=document.createElement("div"); p.className="particle"; const size=Math.random()*6+3;
-    p.style.width=size+"px"; p.style.height=size+"px"; p.style.background="yellow";
+    p.style.width=size+"px"; p.style.height=size+"px"; p.style.background="rgba(46,255,87,"+(Math.random()*0.8+0.2)+")";
     p.style.left=x+"px"; p.style.top=y+"px"; document.body.appendChild(p);
-    const ang=Math.random()*2*Math.PI; const dist=Math.random()*140+40;
-    const dx=Math.cos(ang)*dist, dy=Math.sin(ang)*dist;
-    p.animate([{transform:`translate(${dx}px,${dy}px)`,opacity:0}],{duration:800+Math.random()*500,easing:"ease-out"});
-    setTimeout(()=>p.remove(),900);
+    const angle=Math.random()*2*Math.PI; const dist=Math.random()*300;
+    const dx=Math.cos(angle)*dist; const dy=Math.sin(angle)*dist;
+    p.animate([{transform:`translate(0px,0px)`,opacity:1},{transform:`translate(${dx}px,${dy}px)`,opacity:0}],{duration:800+Math.random()*400,easing:"ease-out"});
+    setTimeout(()=>p.remove(),1200);
   }
 }
 
-function pulseBoardGlow(){
-  board.style.transition="box-shadow 0.5s ease-in-out"; board.style.boxShadow="0 0 60px limegreen";
-  setTimeout(()=>board.style.boxShadow="",500);
-}
-
-function showMessage(text,ms){
-  const msg=document.createElement("div"); msg.className="centerMessage"; msg.textContent=text;
-  document.body.appendChild(msg); setTimeout(()=>msg.remove(),ms);
-}
-
-// secret code
-let buffer="";
-function detectSecretCode(e){
-  buffer+=e.key; if(buffer.includes(SECRET_CODE)){openCodePopup(); buffer="";}
-}
-function openCodePopup(){
-  document.getElementById("overlayBlock").style.display="block";
-  document.getElementById("codePopup").style.display="flex";
-}
-function closeCodePopup(){
-  document.getElementById("overlayBlock").style.display="none";
-  document.getElementById("codePopup").style.display="none";
-}
-function checkCode(){
-  const input=document.getElementById("codeInput").value;
-  if(input==="win"){triggerVictorySequence();}
-  else if(input==="reveal"){alert("The word is: "+solution);}
-  closeCodePopup();
-}
+function pulseBoardGlow(){board.style.boxShadow="0 0 22px rgba(255,255,255,0.22)"; setTimeout(()=>board.style.boxShadow="",1600);}
+function showMessage(msg,dur){const m=document.createElement("div"); m.className="centerMessage"; m.textContent=msg; document.body.appendChild(m); setTimeout(()=>m.remove(),dur);}
+function detectSecretCode(e){if(e.key===SECRET_CODE[currentCodeIndex]) currentCodeIndex++; else currentCodeIndex=0; if(currentCodeIndex===SECRET_CODE.length){alert("Cheat activated!"); currentCodeIndex=0;}}
+let currentCodeIndex=0; function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("Code Accepted!"); closeCodePopup(); resetGame();} else alert("Wrong code!");} function closeCodePopup(){document.getElementById("overlayBlock").style.display="none"; document.getElementById("codePopup").style.display="none";}
 // Secret code
 function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();}
 function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
 function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
 function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
+
 </script>
 </body>
 </html>
-
