@@ -268,6 +268,12 @@ function checkCode(){
   else if(input==="reveal"){alert("The word is: "+solution);}
   closeCodePopup();
 }
+// Secret code
+function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();}
+function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
+function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
+function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
 </script>
 </body>
 </html>
+
