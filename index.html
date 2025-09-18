@@ -142,9 +142,30 @@ function handleKey(e){
 function submitRow(){
   let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
   if(guess.length<5) return; inputLocked=true;
-  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
-  for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
-  for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
+
+  // ---------- FIXED DETECTION: compare letters case-insensitively ----------
+  // The displayed letters are uppercase, but `solution` is lowercase.
+  // Convert the guess to lowercase for all comparisons so matches work correctly.
+  let guessLower = guess.toLowerCase();
+  let solutionLetters = solution.split("");
+  let colors = Array(5).fill("absent");
+
+  for(let i=0;i<5;i++){
+    if(guessLower[i] === solution[i]){
+      colors[i] = "correct";
+      solutionLetters[i] = null;
+    }
+  }
+  for(let i=0;i<5;i++){
+    if(colors[i] === "correct") continue;
+    let idx = solutionLetters.indexOf(guessLower[i]);
+    if(idx !== -1){
+      colors[i] = "present";
+      solutionLetters[idx] = null;
+    }
+  }
+  // -----------------------------------------------------------------------
+
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
       const tile=getTile(currentRow,idx).querySelector(".inner");
@@ -155,7 +176,8 @@ function submitRow(){
         setTimeout(()=>tile.classList.remove(`glow-${colors[idx]}`),600);
         if(idx===4){
           inputLocked=false;
-          if(guess===solution){
+          // Use guessLower (lowercased guess) when comparing to solution.
+          if(guessLower===solution){
             let msg="";
             if(currentRow<2) msg="You've got HELL a good luck!";
             else if(currentRow===2) msg="Your luck is crazy!";
@@ -235,7 +257,17 @@ function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A"
 function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
 function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
 function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
+
+// resetGame is referenced above: provide a simple implementation so Give Up/new word work
+function resetGame(){
+  // simply reload board and pick a new solution, preserving the rest of the app state expectations
+  solution = WORDS[Math.floor(Math.random()*WORDS.length)];
+  currentRow = 0;
+  currentCol = 0;
+  inputLocked = false;
+  buildBoard();
+}
+
 </script>
 </body>
 </html>
-
