@@ -230,6 +230,12 @@ function pulseBoardGlow(){board.style.boxShadow="0 0 22px rgba(255,255,255,0.22)
 function showMessage(msg,dur){const m=document.createElement("div"); m.className="centerMessage"; m.textContent=msg; document.body.appendChild(m); setTimeout(()=>m.remove(),dur);}
 function detectSecretCode(e){if(e.key===SECRET_CODE[currentCodeIndex]) currentCodeIndex++; else currentCodeIndex=0; if(currentCodeIndex===SECRET_CODE.length){alert("Cheat activated!"); currentCodeIndex=0;}}
 let currentCodeIndex=0; function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("Code Accepted!"); closeCodePopup(); resetGame();} else alert("Wrong code!");} function closeCodePopup(){document.getElementById("overlayBlock").style.display="none"; document.getElementById("codePopup").style.display="none";}
+// Secret code
+function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();}
+function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
+function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
+function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
 </script>
 </body>
 </html>
+
