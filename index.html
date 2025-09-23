@@ -77,7 +77,7 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
   </div>
 </div>
 <script>
-const WORDS=["apple","grape","table","chair","water","light","house","green","black","white","bread","plant","glass","stone","music","dance","happy","smile","laugh","story","piano","train","plane","truck","sheep","goose","tiger","zebra","horse","mouse","sleep","dream","cloud","rainy","storm","windy","snowy","sunny","beach","ocean","river","earth","world","space","stars","moons","rocks","trees","grass","field","books","penny","candy","honey","sugar","lemon","peach","berry","melon","mango","shoes","socks","shirt","pants","dress","skirt","jelly","salad","pizza","bread","spoon","forks","plate","knife","couch","rugby","bench","cabin","clock","watch","paper","chalk","paint","brush","draws","color","smell","taste","touch","sight","sound"];
+const WORDS=["apple","grape","table","chair","water","light","house","green","black","white","bread","plant","glass","stone","music","dance","happy","smile","laugh","story","piano","train","plane","truck","sheep","goose","tiger","zebra","horse","mouse","sleep","dream","cloud","rainy","storm","windy","snowy","sunny","beach","ocean","river","earth","world","space","stars","moons","rocks","trees","grass","field","books","penny","candy","honey","sugar","lemon","peach","berry","melon","mango"];
 let solution=WORDS[Math.floor(Math.random()*WORDS.length)];
 let board, keyboard;
 let currentRow=0, currentCol=0, inputLocked=false;
@@ -86,8 +86,8 @@ const SECRET_CODE="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 window.addEventListener("load",()=>{
   board=document.getElementById("board"); keyboard=document.getElementById("keyboard");
   buildBoard(); createKeyboard();
-  document.addEventListener("keydown",handleKey);
-  document.addEventListener("keydown",detectSecretCode);
+
+  document.addEventListener("keydown", handleKeyInput);
 
   document.getElementById("newWordBtn").onclick=()=>location.reload();
   document.getElementById("giveUpBtn").onclick=()=>{alert("Word was: "+solution); location.reload();}
@@ -115,39 +115,48 @@ function createKeyboard(){
     const rowDiv=document.createElement("div"); rowDiv.className="kb-row";
     for(let ch of r){
       const btn=document.createElement("button"); btn.textContent=ch; btn.dataset.color="black";
-      btn.onclick=()=>handleKey({key:ch}); rowDiv.appendChild(btn);
+      btn.onclick=()=>handleKeyInput({key: ch});
+      rowDiv.appendChild(btn);
     }
     keyboard.appendChild(rowDiv);
   });
   const lastRow=document.createElement("div"); lastRow.className="kb-row";
-  const enterBtn=document.createElement("button"); enterBtn.textContent="Enter"; enterBtn.className="wide"; enterBtn.onclick=()=>handleKey({key:"Enter"});
-  const backBtn=document.createElement("button"); backBtn.textContent="Backspace"; backBtn.className="wide"; backBtn.onclick=()=>handleKey({key:"Backspace"});
+  const enterBtn=document.createElement("button"); enterBtn.textContent="Enter"; enterBtn.className="wide"; enterBtn.onclick=()=>handleKeyInput({key:"Enter"});
+  const backBtn=document.createElement("button"); backBtn.textContent="Backspace"; backBtn.className="wide"; backBtn.onclick=()=>handleKeyInput({key:"Backspace"});
   lastRow.appendChild(enterBtn); lastRow.appendChild(backBtn);
   keyboard.appendChild(lastRow);
 }
 
 function getTile(r,c){return board.children[r].children[c];}
 
-function handleKey(e) {
+function handleKeyInput(e){
   if(inputLocked) return;
-  if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
-    const tile=getTile(currentRow,currentCol); tile.querySelector(".letter").textContent=e.key.toUpperCase();
-    tile.classList.add("keypress"); setTimeout(()=>tile.classList.remove("keypress"),200);
+  const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+  if(/^[A-Z]$/.test(key) && currentCol<5){
+    const tile=getTile(currentRow,currentCol);
+    tile.querySelector(".letter").textContent=key;
+    tile.classList.add("keypress");
+    setTimeout(()=>tile.classList.remove("keypress"),200);
     currentCol++;
-  } else if(e.key==="Backspace" && currentCol>0){
-    currentCol--; getTile(currentRow,currentCol).querySelector(".letter").textContent="";
-  } else if(e.key==="Enter" && currentCol===5){
+  } else if(key==="Backspace" && currentCol>0){
+    currentCol--;
+    getTile(currentRow,currentCol).querySelector(".letter").textContent="";
+  } else if(key==="Enter" && currentCol===5){
     submitRow();
   }
 }
 
 function submitRow(){
-  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
-  if(guess.length<5) return;
-  inputLocked=true;
-  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
-  for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
+  let guess=""; 
+  for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent.toUpperCase();
+  if(guess.length<5) return; inputLocked=true;
+
+  let solutionLetters = solution.toUpperCase().split(""); 
+  let colors=Array(5).fill("absent");
+
+  for(let i=0;i<5;i++) if(guess[i]===solutionLetters[i]){colors[i]="correct"; solutionLetters[i]=null;}
   for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
+
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
       const tile=getTile(currentRow,idx).querySelector(".inner");
@@ -158,7 +167,7 @@ function submitRow(){
         updateKeyboard(ch.toUpperCase(),colors[idx]);
         if(idx===4){
           inputLocked=false;
-          if(guess===solution){
+          if(guess===solution.toUpperCase()){
             let msg="";
             if(currentRow<2) msg="You've got HELL a good luck!";
             else if(currentRow===2) msg="Your luck is crazy!";
@@ -187,8 +196,6 @@ function triggerVictorySequence(){
   document.body.classList.add("shakeBody");
   board.querySelectorAll(".tile").forEach(t=>{t.classList.add("pop"); setTimeout(()=>t.classList.remove("pop"),800);});
   spawnConfettiRain(150,0,0,window.innerWidth);
-  spawnFloatingLetters(30,0,0,window.innerWidth,window.innerHeight);
-  spawnSparkParticles(80,window.innerWidth/2,window.innerHeight/2);
   setTimeout(()=>location.reload(),2400);
 }
 
@@ -199,27 +206,6 @@ function spawnConfettiRain(count,x,y,width){
     p.style.left=(x+Math.random()*width)+"px"; p.style.top=y+"px"; document.body.appendChild(p);
     p.animate([{transform:`translateY(${600+Math.random()*100}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1200+Math.random()*600,easing:"cubic-bezier(.2,.7,.3,1)"});
     setTimeout(()=>p.remove(),1600);
-  }
-}
-
-function spawnFloatingLetters(count,x,y,w,h){
-  for(let i=0;i<count;i++){
-    const l=document.createElement("div"); l.textContent=WORDS[Math.floor(Math.random()*WORDS.length)][Math.floor(Math.random()*5)];
-    l.style.position="absolute"; l.style.color="white"; l.style.fontWeight="bold"; l.style.fontSize="24px";
-    l.style.left=(x+Math.random()*w)+"px"; l.style.top=(y+Math.random()*h)+"px"; document.body.appendChild(l);
-    const t=1200+Math.random()*400; l.animate([{transform:`translateY(-${100+Math.random()*80}px)`,opacity:0}],{duration:t,easing:"ease-out"});
-    setTimeout(()=>l.remove(),t);
-  }
-}
-
-function spawnSparkParticles(count,x,y){
-  for(let i=0;i<count;i++){
-    const p=document.createElement("div"); p.className="particle"; const size=Math.random()*6+3;
-    p.style.width=size+"px"; p.style.height=size+"px"; p.style.background="rgba(46,255,87,"+(Math.random()*0.8+0.2)+")";
-    p.style.left=x+"px"; p.style.top=y+"px"; document.body.appendChild(p);
-    const animTime=800+Math.random()*600;
-    p.animate([{transform:`translate(${(Math.random()-0.5)*300}px,${(Math.random()-0.5)*300}px) scale(0.3)`,opacity:0}],{duration:animTime,easing:"ease-out"});
-    setTimeout(()=>p.remove(),animTime);
   }
 }
 
