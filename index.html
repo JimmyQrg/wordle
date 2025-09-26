@@ -150,11 +150,22 @@ function handleKeyInput(e){
 }
 
 function submitRow(){
-  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
-  if(guess.length<5) return; inputLocked=true;
-  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
+  let guess=""; 
+  for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
+  guess = guess.toLowerCase();
+  if(guess.length<5) return; 
+  if(!WORDS.includes(guess)){
+    showInvalidWordMessage();
+    return;
+  }
+  
+  inputLocked=true;
+  let solutionLetters=solution.split(""); 
+  let colors=Array(5).fill("absent");
+  
   for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
   for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
+  
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
       const tile=getTile(currentRow,idx).querySelector(".inner");
@@ -179,6 +190,34 @@ function submitRow(){
   });
 }
 
+function showInvalidWordMessage(){
+  const msg=document.createElement("div");
+  msg.className="centerMessage";
+  msg.textContent="Not in word list";
+  msg.style.background="rgba(0,0,0,0.6)";
+  msg.style.color="white";
+  msg.style.transition="all 0.5s ease-out";
+  document.body.appendChild(msg);
+  
+  // Shake animation
+  msg.animate([
+    {transform:"translateX(0px)"},
+    {transform:"translateX(-8px)"},
+    {transform:"translateX(8px)"},
+    {transform:"translateX(-6px)"},
+    {transform:"translateX(6px)"},
+    {transform:"translateX(0px)"}
+  ], {duration:300});
+  
+  // Fade out and rise after shake
+  setTimeout(()=>{
+    msg.style.opacity="0";
+    msg.style.transform="translateY(-30px)";
+  },300);
+  
+  setTimeout(()=>msg.remove(),800);
+}
+
 function updateKeyboard(ch,color){
   const btns = keyboard.querySelectorAll("button");
   btns.forEach(b=>{
@@ -199,3 +238,4 @@ document.addEventListener("keydown", e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toUpper
 </script>
 </body>
 </html>
+
