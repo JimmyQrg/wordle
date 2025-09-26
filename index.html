@@ -157,7 +157,7 @@ function getTile(r,c){return board.children[r].children[c];}
 // Submit
 function submitRow(){
   let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent.toLowerCase();
-  if(!WORDS.includes(guess)){showMessageShake("Not in word list",500); return;}
+  if(!WORDS.includes(guess)){showMessageShake("Not in word list (Gotcha Felix)",500); return;}
   inputLocked=true;
   let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
   for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
@@ -198,10 +198,23 @@ function updateKeyboard(ch,color){
 
 // Message with shake
 function showMessageShake(msg,duration){
-  const m=document.createElement("div"); m.className="centerMessage"; m.textContent=msg; document.body.appendChild(m);
+  const m=document.createElement("div"); 
+  m.className="centerMessage"; 
+  m.textContent=msg; 
+  // Center middle of screen
+  m.style.top="50%"; 
+  m.style.left="50%";
+  m.style.transform="translate(-50%, -50%)"; 
+  document.body.appendChild(m);
   m.style.animation="shakeScreen 0.5s"; 
-  setTimeout(()=>{m.style.opacity="0"; m.style.transform="translateY(-30px)"; setTimeout(()=>m.remove(),500);},duration);
+  setTimeout(()=>{
+    m.style.transition="all 0.5s ease";
+    m.style.opacity="0"; 
+    m.style.transform="translate(-50%, -80%)"; 
+    setTimeout(()=>m.remove(),500);
+  },duration);
 }
+
 
 // Generic message
 function showMessage(text,duration){const m=document.createElement("div"); m.className="centerMessage"; m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),duration);}
@@ -274,4 +287,5 @@ document.addEventListener("keydown",detectSecretCode);
 </script>
 </body>
 </html>
+
 
