@@ -197,23 +197,31 @@ function updateKeyboard(ch,color){
 }
 
 // Message with shake
-function showMessageShake(msg,duration){
-  const m=document.createElement("div"); 
-  m.className="centerMessage"; 
-  m.textContent=msg; 
-  // Center middle of screen
-  m.style.top="50%"; 
-  m.style.left="50%";
-  m.style.transform="translate(-50%, -50%)"; 
+function showMessageShake(msg, duration){
+  const m = document.createElement("div"); 
+  m.className = "centerMessage"; 
+  m.textContent = msg; 
+  // Center in viewport
+  m.style.position = "fixed";
+  m.style.top = "50%";
+  m.style.left = "50%";
+  m.style.transform = "translate(-50%, -50%)";
+  m.style.opacity = "1";
+  m.style.zIndex = "5000";
   document.body.appendChild(m);
-  m.style.animation="shakeScreen 0.5s"; 
+  
+  // Shake animation
+  m.style.animation = "shakeScreen 0.5s";
+
+  // Fade out and rise after duration
   setTimeout(()=>{
-    m.style.transition="all 0.5s ease";
-    m.style.opacity="0"; 
-    m.style.transform="translate(-50%, -80%)"; 
-    setTimeout(()=>m.remove(),500);
-  },duration);
+    m.style.transition = "all 0.5s ease";
+    m.style.opacity = "0";
+    m.style.transform = "translate(-50%, -80%)"; // rises slightly
+    setTimeout(()=>m.remove(), 500);
+  }, duration);
 }
+
 
 
 // Generic message
@@ -287,6 +295,7 @@ document.addEventListener("keydown",detectSecretCode);
 </script>
 </body>
 </html>
+
 
 
 
