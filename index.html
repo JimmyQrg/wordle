@@ -43,9 +43,9 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
 .kb-row button { padding:10px 12px; border-radius:6px; border:none; background:#444; color:white; font-weight:bold; cursor:pointer; transition: transform .12s, box-shadow .12s, background .12s; }
 .kb-row button:hover { transform: scale(1.06); box-shadow:0 0 12px rgba(255,255,255,0.08); background:#666; }
 .kb-row button.wide { min-width:90px; padding-left:18px; padding-right:18px; }
-.kb-row button.correct { background:#2ea44f !important; color:white; }
-.kb-row button.present { background:#c9b458 !important; color:white; }
-.kb-row button.absent { background:#5f6368 !important; color:white; }
+.kb-row button.correct { background:#2ea44f !important; color:white;}
+.kb-row button.present { background:#c9b458 !important; color:white;}
+.kb-row button.absent { background:#5f6368 !important; color:white;}
 @keyframes shakeScreen {0%{transform:translate(0,0) scale(1);}12%{transform:translate(-12px,8px) scale(1.02);}24%{transform:translate(10px,-8px) scale(0.98);}36%{transform:translate(-8px,8px) scale(1.01);}48%{transform:translate(10px,-8px) scale(1.03);}60%{transform:translate(-6px,6px) scale(0.97);}72%{transform:translate(6px,-6px) scale(1.02);}84%{transform:translate(-4px,4px) scale(1.01);}100%{transform:translate(0,0) scale(1);}}
 .shakeBody { animation: shakeScreen 1200ms ease-in-out both; }
 .fallPiece { position:absolute; will-change: transform, opacity; pointer-events:none; animation: fallDown 1600ms cubic-bezier(.2,.7,.3,1) forwards; z-index:9999; }
@@ -55,7 +55,7 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
 #codePopup input { width:360px; max-width:86vw; padding:10px 12px; font-size:16px; border-radius:8px; border:none; }
 #codePopup .codeRow { display:flex; gap:8px; }
 #overlayBlock { position:fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display:none; z-index:2900; }
-.centerMessage { position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7); border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08); }
+.centerMessage { position:fixed; left:50%; top:10%; transform:translateX(-50%); padding:14px 22px; background:rgba(0,0,0,0.7); border-radius:10px; font-size:20px; z-index:4000; box-shadow:0 0 22px rgba(255,255,255,0.08); transition:all 0.5s ease;}
 @media (max-width:600px){ :root{ --tile-size:56px; } .letter{ font-size:20px; } }
 </style>
 </head>
@@ -77,30 +77,32 @@ h1 { margin:20px; font-size:2.4rem; letter-spacing:3px; text-shadow:2px 2px 12px
   </div>
 </div>
 <script>
-let WORDS = [];
-let solution = "";
-let board, keyboard;
-let currentRow = 0, currentCol = 0, inputLocked = false;
+let WORDS=[], solution="", board, keyboard;
+let currentRow=0, currentCol=0, inputLocked=false;
 const SECRET_CODE="JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 
-// Fetch words dynamically
+// Fetch words.txt
 fetch("words.txt")
-  .then(res => res.text())
-  .then(data => {
-    WORDS = data.split("\n").map(w => w.trim()).filter(w => w.length === 5);
-    solution = WORDS[Math.floor(Math.random()*WORDS.length)];
-    board = document.getElementById("board");
-    keyboard = document.getElementById("keyboard");
-    buildBoard();
-    createKeyboard();
-    document.addEventListener("keydown", handleKeyInput);
-  })
-  .catch(err => console.error("Failed to load word list:", err));
+.then(r=>r.text())
+.then(txt=>{
+  WORDS = txt.split(/\r?\n/).map(w=>w.trim().toLowerCase()).filter(w=>w.length===5);
+  solution = WORDS[Math.floor(Math.random()*WORDS.length)];
+  initGame();
+})
+.catch(e=>{alert("words.txt missing or failed to load."); console.error(e);});
 
-document.getElementById("newWordBtn").onclick = () => location.reload();
-document.getElementById("giveUpBtn").onclick = () => { alert("Word was: "+solution); location.reload(); };
-document.getElementById("codeSubmitBtn").onclick = checkCode;
+// Init
+function initGame(){
+  board=document.getElementById("board"); 
+  keyboard=document.getElementById("keyboard");
+  buildBoard(); createKeyboard();
+  document.addEventListener("keydown",handleKeyInput);
+  document.getElementById("newWordBtn").onclick=()=>location.reload();
+  document.getElementById("giveUpBtn").onclick=()=>{alert("Word was: "+solution); location.reload();}
+  document.getElementById("codeSubmitBtn").onclick=checkCode;
+}
 
+// Board
 function buildBoard(){
   board.innerHTML="";
   for(let r=0;r<6;r++){
@@ -115,6 +117,7 @@ function buildBoard(){
   }
 }
 
+// Keyboard
 function createKeyboard(){
   const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
   keyboard.innerHTML="";
@@ -133,39 +136,32 @@ function createKeyboard(){
   keyboard.appendChild(lastRow);
 }
 
-function getTile(r,c){ return board.children[r].children[c]; }
-
+// Input
 function handleKeyInput(e){
   if(inputLocked) return;
-  const key = e.key.length===1 ? e.key.toUpperCase() : e.key;
-  if(/^[A-Z]$/.test(key) && currentCol<5){
-    const tile=getTile(currentRow,currentCol); tile.querySelector(".letter").textContent=key;
-    tile.classList.add("keypress"); setTimeout(()=>tile.classList.remove("keypress"),200);
+  if(/^[a-zA-Z]$/.test(e.key) && currentCol<5){
+    const tile=getTile(currentRow,currentCol); 
+    tile.querySelector(".letter").textContent=e.key.toUpperCase();
+    tile.classList.add("keypress");
+    setTimeout(()=>tile.classList.remove("keypress"),200);
     currentCol++;
-  } else if(key==="Backspace" && currentCol>0){
+  } else if(e.key==="Backspace" && currentCol>0){
     currentCol--; getTile(currentRow,currentCol).querySelector(".letter").textContent="";
-  } else if(key==="Enter" && currentCol===5){
+  } else if(e.key==="Enter" && currentCol===5){
     submitRow();
   }
 }
 
+function getTile(r,c){return board.children[r].children[c];}
+
+// Submit
 function submitRow(){
-  let guess=""; 
-  for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
-  guess = guess.toLowerCase();
-  if(guess.length<5) return; 
-  if(!WORDS.includes(guess)){
-    showInvalidWordMessage();
-    return;
-  }
-  
+  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent.toLowerCase();
+  if(!WORDS.includes(guess)){showMessageShake("Not in word list",500); return;}
   inputLocked=true;
-  let solutionLetters=solution.split(""); 
-  let colors=Array(5).fill("absent");
-  
+  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
   for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
   for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
-  
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
       const tile=getTile(currentRow,idx).querySelector(".inner");
@@ -173,13 +169,12 @@ function submitRow(){
       setTimeout(()=>{
         tile.classList.add(colors[idx]); tile.classList.remove("flipping");
         tile.classList.add(`glow-${colors[idx]}`);
+        updateKeyboard(ch.toUpperCase(), colors[idx]);
         setTimeout(()=>tile.classList.remove(`glow-${colors[idx]}`),600);
-        updateKeyboard(ch,colors[idx]);
         if(idx===4){
           inputLocked=false;
           if(guess===solution){
-            showMessage("You guessed it!",1600);
-            setTimeout(()=>location.reload(),2000);
+            showMessage("Correct!","1600"); triggerVictorySequence();
           } else{
             currentRow++; currentCol=0;
             if(currentRow===6) showMessage("Out of tries! Word was "+solution,2000);
@@ -190,52 +185,92 @@ function submitRow(){
   });
 }
 
-function showInvalidWordMessage(){
-  const msg=document.createElement("div");
-  msg.className="centerMessage";
-  msg.textContent="Not in word list";
-  msg.style.background="rgba(0,0,0,0.6)";
-  msg.style.color="white";
-  msg.style.transition="all 0.5s ease-out";
-  document.body.appendChild(msg);
-  
-  // Shake animation
-  msg.animate([
-    {transform:"translateX(0px)"},
-    {transform:"translateX(-8px)"},
-    {transform:"translateX(8px)"},
-    {transform:"translateX(-6px)"},
-    {transform:"translateX(6px)"},
-    {transform:"translateX(0px)"}
-  ], {duration:300});
-  
-  // Fade out and rise after shake
-  setTimeout(()=>{
-    msg.style.opacity="0";
-    msg.style.transform="translateY(-30px)";
-  },300);
-  
-  setTimeout(()=>msg.remove(),800);
-}
-
+// Keyboard color update
 function updateKeyboard(ch,color){
-  const btns = keyboard.querySelectorAll("button");
+  const btns=[...keyboard.querySelectorAll("button")].filter(b=>b.textContent===ch);
   btns.forEach(b=>{
-    if(b.textContent.toUpperCase()===ch){
-      if(color==="correct") b.classList.remove("present","absent"), b.classList.add("correct");
-      else if(color==="present" && !b.classList.contains("correct")) b.classList.remove("absent"), b.classList.add("present");
-      else if(color==="absent" && !b.classList.contains("correct") && !b.classList.contains("present")) b.classList.add("absent");
-    }
+    if(b.classList.contains("correct")) return;
+    if(color==="correct") b.className="correct kb-btn";
+    else if(color==="present" && !b.classList.contains("present")) b.className="present kb-btn";
+    else if(color==="absent" && !b.classList.contains("present") && !b.classList.contains("correct")) b.className="absent kb-btn";
   });
 }
 
+// Message with shake
+function showMessageShake(msg,duration){
+  const m=document.createElement("div"); m.className="centerMessage"; m.textContent=msg; document.body.appendChild(m);
+  m.style.animation="shakeScreen 0.5s"; 
+  setTimeout(()=>{m.style.opacity="0"; m.style.transform="translateY(-30px)"; setTimeout(()=>m.remove(),500);},duration);
+}
+
+// Generic message
 function showMessage(text,duration){const m=document.createElement("div"); m.className="centerMessage"; m.textContent=text; document.body.appendChild(m); setTimeout(()=>m.remove(),duration);}
 
-function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
+// Victory Effects
+function triggerVictorySequence(){
+  document.body.classList.add("shakeBody");
+  pulseBoardGlow();
+  shatterBoard();
+  spawnConfettiRain(150,0,0,window.innerWidth);
+  spawnFloatingLetters(30,0,0,window.innerWidth,window.innerHeight);
+  spawnSparkParticles(80,window.innerWidth/2,window.innerHeight/2);
+  setTimeout(()=>location.reload(),2400);
+}
+
+function shatterBoard(){
+  const pieces=[];
+  board.querySelectorAll(".tile").forEach(t=>{
+    const rect=t.getBoundingClientRect();
+    const clone=t.cloneNode(true); clone.className="fallPiece";
+    clone.style.left=rect.left+"px"; clone.style.top=rect.top+"px";
+    clone.style.width=rect.width+"px"; clone.style.height=rect.height+"px";
+    document.body.appendChild(clone); pieces.push(clone);
+  });
+  setTimeout(()=>pieces.forEach(p=>p.remove()),1800);
+}
+
+function spawnConfettiRain(count,x,y,width){
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div"); p.className="particle"; const s=Math.random()*10+6;
+    p.style.width=s+"px"; p.style.height=s+"px"; p.style.background=`hsl(${Math.random()*360},100%,65%)`;
+    p.style.left=(x+Math.random()*width)+"px"; p.style.top=y+"px"; document.body.appendChild(p);
+    p.animate([{transform:`translateY(${600+Math.random()*100}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1200+Math.random()*600,easing:"cubic-bezier(.2,.7,.3,1)"});
+    setTimeout(()=>p.remove(),1600);
+  }
+}
+
+function spawnFloatingLetters(count,x,y,w,h){
+  for(let i=0;i<count;i++){
+    const l=document.createElement("div"); l.textContent=WORDS[Math.floor(Math.random()*WORDS.length)][Math.floor(Math.random()*5)];
+    l.style.position="absolute"; l.style.color="white"; l.style.fontWeight="bold"; l.style.fontSize="24px";
+    l.style.left=(x+Math.random()*w)+"px"; l.style.top=(y+Math.random()*h)+"px"; document.body.appendChild(l);
+    const t=1200+Math.random()*400; l.animate([{transform:`translateY(-${100+Math.random()*80}px)`,opacity:0}],{duration:t,easing:"ease-out"});
+    setTimeout(()=>l.remove(),t);
+  }
+}
+
+function spawnSparkParticles(count,x,y){
+  for(let i=0;i<count;i++){
+    const p=document.createElement("div"); p.className="particle"; const size=Math.random()*6+3;
+    p.style.width=size+"px"; p.style.height=size+"px"; p.style.background="rgba(46,255,87,"+(Math.random()*0.8+0.2)+")";
+    p.style.left=x+"px"; p.style.top=y+"px"; document.body.appendChild(p);
+    const animTime=800+Math.random()*600;
+    p.animate([{transform:`translate(${(Math.random()-0.5)*300}px,${(Math.random()-0.5)*300}px) scale(0.3)`,opacity:0}],{duration:animTime,easing:"ease-out"});
+    setTimeout(()=>p.remove(),animTime);
+  }
+}
+
+function pulseBoardGlow(){
+  board.querySelectorAll(".tile").forEach(t=>{t.classList.add("pop"); setTimeout(()=>t.classList.remove("pop"),800);});
+  keyboard.querySelectorAll("button").forEach(b=>{b.style.boxShadow="0 0 22px rgba(46,255,87,0.95)"; setTimeout(()=>b.style.boxShadow="",800);});
+}
+
+// Secret code
+function detectSecretCode(e){if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();}
 function showCodePopup(){document.getElementById("overlayBlock").style.display="block";document.getElementById("codePopup").style.display="flex";document.getElementById("codeInput").value="";}
 function closeCodePopup(){document.getElementById("overlayBlock").style.display="none";document.getElementById("codePopup").style.display="none";}
-document.addEventListener("keydown", e=>{if(e.ctrlKey&&e.shiftKey&&e.key.toUpperCase()==="A") showCodePopup();});
+function checkCode(){const val=document.getElementById("codeInput").value; if(val===SECRET_CODE){alert("The word is: "+solution); closeCodePopup();} else{alert("Wrong code!");}}
+document.addEventListener("keydown",detectSecretCode);
 </script>
 </body>
 </html>
-
