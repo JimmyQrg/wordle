@@ -157,7 +157,7 @@ function getTile(r,c){return board.children[r].children[c];}
 // Submit
 function submitRow(){
   let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent.toLowerCase();
-  if(!WORDS.includes(guess)){showMessageShake("Not in word list (Gotcha Felix)",500); return;}
+  if(!WORDS.includes(guess)){showMessageShake("NOT IN WORD LIST",500); return;}
   inputLocked=true;
   let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
   for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
@@ -287,5 +287,6 @@ document.addEventListener("keydown",detectSecretCode);
 </script>
 </body>
 </html>
+
 
 
