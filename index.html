@@ -160,7 +160,12 @@ function submitRow(){
   if(!WORDS.includes(guess)){showMessageShake("NOT IN WORD LIST",500); return;}
   inputLocked=true;
   let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
-  for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
+  for(let i=0;i<5;i++){
+    if(guess[i] === solutionLetters[i]){
+      colors[i] = "correct";
+      solutionLetters[i] = null; // consume
+    }
+  }
   for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
   [...guess].forEach((ch,idx)=>{
     setTimeout(()=>{
@@ -295,7 +300,3 @@ document.addEventListener("keydown",detectSecretCode);
 </script>
 </body>
 </html>
-
-
-
-
