@@ -150,34 +150,70 @@ function handleKeyInput(e){
 }
 
 function submitRow(){
-  let guess=""; for(let c=0;c<5;c++) guess+=getTile(currentRow,c).querySelector(".letter").textContent;
-  if(guess.length<5) return; inputLocked=true;
-  let solutionLetters=solution.split(""); let colors=Array(5).fill("absent");
-  for(let i=0;i<5;i++) if(guess[i]===solution[i]){colors[i]="correct"; solutionLetters[i]=null;}
-  for(let i=0;i<5;i++){if(colors[i]==="correct") continue; let idx=solutionLetters.indexOf(guess[i]); if(idx!==-1){colors[i]="present"; solutionLetters[idx]=null;}}
-  [...guess].forEach((ch,idx)=>{
+  if(inputLocked) return;
+  const guess = boardState[currentRow].join("");
+  if(guess.length < 5){
+    showMessage("Not enough letters",1000);
+    return;
+  }
+  if(!wordList.includes(guess)){
+    showMessage("Not in word list",1000);
+    return;
+  }
+
+  inputLocked = true;
+  let solutionLetters = solution.split("");
+  let colors = Array(5).fill("absent");
+
+  // Pass 1: Check greens
+  for(let i=0; i<5; i++){
+    if(guess[i] === solution[i]){
+      colors[i] = "correct";
+      solutionLetters[i] = null; // mark as used
+    }
+  }
+
+  // Pass 2: Check yellows
+  for(let i=0; i<5; i++){
+    if(colors[i] === "correct") continue;
+    let idx = solutionLetters.indexOf(guess[i]);
+    if(idx !== -1){
+      colors[i] = "present";
+      solutionLetters[idx] = null; // consume one letter
+    }
+  }
+
+  // Animate tiles
+  [...guess].forEach((ch, idx)=>{
     setTimeout(()=>{
-      const tile=getTile(currentRow,idx).querySelector(".inner");
+      const tile = getTile(currentRow, idx).querySelector(".inner");
       tile.classList.add("flipping");
       setTimeout(()=>{
-        tile.classList.add(colors[idx]); tile.classList.remove("flipping");
+        tile.classList.add(colors[idx]);
+        tile.classList.remove("flipping");
         tile.classList.add(`glow-${colors[idx]}`);
+        updateKeyboard(ch.toUpperCase(), colors[idx]);
+        createConfetti(tile);
         setTimeout(()=>tile.classList.remove(`glow-${colors[idx]}`),600);
-        updateKeyboard(ch,colors[idx]);
-        if(idx===4){
-          inputLocked=false;
-          if(guess===solution){
-            showMessage("You guessed it!",1600);
-            setTimeout(()=>location.reload(),2000);
-          } else{
-            currentRow++; currentCol=0;
-            if(currentRow===6) showMessage("Out of tries! Word was "+solution,2000);
+
+        if(idx === 4){
+          inputLocked = false;
+          if(guess === solution){
+            showMessage("Correct!", 1600);
+            triggerVictorySequence();
+          } else {
+            currentRow++;
+            currentCol = 0;
+            if(currentRow === 6){
+              showMessage("Out of tries! Word was " + solution, 2000);
+            }
           }
         }
       },300);
-    },idx*400);
+    }, idx*400);
   });
 }
+
 
 function updateKeyboard(ch,color){
   const btns = keyboard.querySelectorAll("button");
