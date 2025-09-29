@@ -204,12 +204,6 @@ function submitRow(){
 
   if(guess.length < 5) return;
 
-  // Validate against WORDS (WORDS are UPPERCASE)
-  if(!WORDS.includes(guess)){
-    showMessage("Not in word list", 900);
-    return;
-  }
-
   inputLocked = true;
 
   // Prepare arrays for marking
