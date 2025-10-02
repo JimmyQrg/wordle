@@ -97,11 +97,10 @@ let inputLocked = false;
 const SECRET_CODE = "JiMmYiStHeCoOlEsTgUy|2025.letmecheat|L^UP++0U+L0UD";
 
 // Try to load words.txt (same folder). If it fails, fall back to a small list.
-fetch("words.txt")
+fetch("target_words.txt")
   .then(r => r.text())
   .then(txt => {
-    WORDS = txt.split(/\r?\n/).map(w=>w.trim()).filter(w=>w.length===5).map(w=>w.toUpperCase());
-    if(WORDS.length === 0) throw new Error("No 5-letter words found in words.txt");
+    if(WORDS.length === 0) throw new Error("No 5-letter words found in target_words.txt");
     solution = WORDS[Math.floor(Math.random()*WORDS.length)];
     init();
   })
@@ -110,6 +109,12 @@ fetch("words.txt")
     WORDS = ["APPLE","GRAPE","WATER","LIGHT","HOUSE","PLANT","STONE","SMILE","MUSIC","TRAIN"];
     solution = WORDS[Math.floor(Math.random()*WORDS.length)];
     init();
+  });
+
+fetch("words.txt")
+  .then(r => r.text())
+  .then(txt => {
+    WORDS = txt.split(/\r?\n/).map(w=>w.trim()).filter(w=>w.length===5).map(w=>w.toUpperCase());
   });
 
 // ---------------------- init ----------------------
@@ -396,3 +401,4 @@ document.addEventListener("keydown", e=>{ if(e.ctrlKey && e.shiftKey && e.key.to
 </script>
 </body>
 </html>
+
